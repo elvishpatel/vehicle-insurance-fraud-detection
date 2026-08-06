@@ -1,36 +1,36 @@
 import React, { useState } from 'react';
-import { FaSearch, FaSpinner } from 'react-icons/fa';
+import { FaSpinner } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { predictFraud } from '../services/api';
 import './PredictionForm.css';
 
 const numericFields = [
-  { name: 'age_of_driver', label: 'Age of Driver', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'safety_rating', label: 'Safety Rating', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'annual_income', label: 'Annual Income', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'high_education', label: 'High Education', placeholder: '0 or 1' },
-  { name: 'address_change', label: 'Address Change', placeholder: '0 or 1' },
-  { name: 'past_num_of_claims', label: 'Past Claims', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'liab_prct', label: 'Liability %', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'police_report', label: 'Police Report', placeholder: '0 or 1' },
-  { name: 'age_of_vehicle', label: 'Vehicle Age', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'vehicle_price', label: 'Vehicle Price', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'total_claim', label: 'Total Claim', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'injury_claim', label: 'Injury Claim', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'policy_deductible', label: 'Policy Deductible', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'annual_premium', label: 'Annual Premium', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'days_open', label: 'Days Open', placeholder: '0.0 – 1.0 (normalized)' },
-  { name: 'form_defects', label: 'Form Defects', placeholder: '0.0 – 1.0 (normalized)' },
+  { name: 'age_of_driver', label: 'Age of Driver (Years)', placeholder: 'e.g. 35' },
+  { name: 'safety_rating', label: 'Safety Rating (0-100)', placeholder: 'e.g. 85' },
+  { name: 'annual_income', label: 'Annual Income ($)', placeholder: 'e.g. 60000' },
+  { name: 'past_num_of_claims', label: 'Past Number of Claims', placeholder: 'e.g. 2' },
+  { name: 'liab_prct', label: 'Liability Percentage (%)', placeholder: 'e.g. 25' },
+  { name: 'age_of_vehicle', label: 'Vehicle Age (Years)', placeholder: 'e.g. 4' },
+  { name: 'vehicle_price', label: 'Vehicle Price ($)', placeholder: 'e.g. 25000' },
+  { name: 'total_claim', label: 'Total Claim Amount ($)', placeholder: 'e.g. 15000' },
+  { name: 'injury_claim', label: 'Injury Claim Amount ($)', placeholder: 'e.g. 3000' },
+  { name: 'policy_deductible', label: 'Policy Deductible ($)', placeholder: 'e.g. 500' },
+  { name: 'annual_premium', label: 'Annual Premium ($)', placeholder: 'e.g. 1200' },
+  { name: 'days_open', label: 'Days Claim Open', placeholder: 'e.g. 30' },
+  { name: 'form_defects', label: 'Form Defects Count', placeholder: 'e.g. 0' },
 ];
 
 const dropdownFields = [
+  { name: 'high_education', label: 'Higher Education Degree', options: ['', 'Yes', 'No'] },
+  { name: 'address_change', label: 'Recent Address Change', options: ['', 'Yes', 'No'] },
+  { name: 'police_report', label: 'Police Report Filed', options: ['', 'Yes', 'No'] },
   { name: 'gender', label: 'Gender', options: ['', 'Male', 'Female'] },
   { name: 'marital_status', label: 'Marital Status', options: ['', 'Single', 'Married', 'Other'] },
   { name: 'property_status', label: 'Property Status', options: ['', 'Own', 'Rent'] },
-  { name: 'claim_day_of_week', label: 'Claim Day', options: ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
+  { name: 'claim_day_of_week', label: 'Claim Day of Week', options: ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
   { name: 'accident_site', label: 'Accident Site', options: ['', 'Highway', 'Local', 'Parking Lot'] },
   { name: 'witness_present', label: 'Witness Present', options: ['', 'Yes', 'No', 'Unknown'] },
-  { name: 'channel', label: 'Channel', options: ['', 'Broker', 'Online', 'Phone'] },
+  { name: 'channel', label: 'Sales Channel', options: ['', 'Broker', 'Online', 'Phone'] },
   { name: 'vehicle_category', label: 'Vehicle Category', options: ['', 'Compact', 'Medium', 'Large'] },
   { name: 'vehicle_color', label: 'Vehicle Color', options: ['', 'Black', 'Blue', 'Gray', 'Red', 'Silver', 'White', 'Other'] },
 ];
@@ -55,7 +55,7 @@ const PredictionForm = ({ onResult }) => {
     e.preventDefault();
     setError(null);
 
-    // Simple validation
+    // Check required fields
     const isEmpty = Object.values(formData).some((value) => value === '');
     if (isEmpty) {
       setError('Please fill in all the fields before submitting.');
@@ -77,7 +77,7 @@ const PredictionForm = ({ onResult }) => {
     <section id="prediction" className="prediction">
       <div className="prediction__header">
         <h2>Predict Insurance Fraud</h2>
-        <p>Enter the claim details to analyze the likelihood of fraud using our ML model.</p>
+        <p>Enter the claim details below in standard units. Automatic scaling is applied by our AI engine.</p>
       </div>
 
       <div className="prediction__card">
@@ -95,6 +95,7 @@ const PredictionForm = ({ onResult }) => {
                 onChange={handleChange}
                 placeholder={field.placeholder}
                 className="prediction__input"
+                step="any"
               />
             </div>
           ))}

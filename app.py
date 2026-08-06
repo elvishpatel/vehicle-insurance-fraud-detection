@@ -2,12 +2,10 @@
 FraudShield — Flask Backend API
 Loads the trained Decision Tree model and serves fraud predictions.
 
-IMPORTANT: The model expects 50 features:
-- 16 numeric features (already normalized 0-1 in training data)
-- 34 one-hot encoded categorical features (Boolean TRUE/FALSE)
-
-The frontend sends raw values (e.g. gender: "Male", age_of_driver: "0.35").
-This backend converts them to the model's expected format.
+AUTOMATIC SCALING ENABLED:
+The ML model expects 50 features normalized between 0.0 and 1.0.
+The frontend sends natural human inputs (e.g. Age: 35, Income: 60000).
+This backend automatically scales human inputs into 0.0 - 1.0 before running prediction!
 """
 
 import os
@@ -22,7 +20,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 # ── Initialize Flask app ─────────────────────────────────────
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React frontend on localhost:3000
+CORS(app)  # Enable CORS for React frontend
 
 # ── Load the trained model ───────────────────────────────────
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'vehicle_insurance_fraud_detection_model.pkl')
@@ -32,14 +30,6 @@ print(f"   Features expected: {model.n_features_in_}")
 
 # ── The exact feature order the model was trained on ─────────
 FEATURE_NAMES = list(model.feature_names_in_)
-
-# Numeric features (frontend sends these as float values 0-1)
-NUMERIC_FEATURES = [
-    'age_of_driver', 'safety_rating', 'annual_income', 'high_education',
-    'address_change', 'past_num_of_claims', 'liab_prct', 'police_report',
-    'age_of_vehicle', 'vehicle_price', 'total_claim', 'injury_claim',
-    'policy_deductible', 'annual_premium', 'days_open', 'form_defects'
-]
 
 # Categorical mappings: frontend value → list of one-hot column names
 CATEGORICAL_MAPPINGS = {
@@ -97,22 +87,97 @@ CATEGORICAL_MAPPINGS = {
     },
 }
 
+def scale_numeric_value(field, val):
+    """
+    Automatically scales natural human input (e.g. Age: 35, Income: $50000)
+    into 0.0 - 1.0 range expected by the ML model.
+    """
+    if val is None or val == '':
+        return 0.0
+
+    # Handle Yes / No or string booleans
+    if isinstance(val, str):
+        val_str = val.strip().lower()
+        if val_str in ['yes', 'true', '1']:
+            return 1.0
+        if val_str in ['no', 'false', '0']:
+            return 0.0
+
+    try:
+        fval = float(val)
+    except (ValueError, TypeError):
+        return 0.0
+
+    # Automatic Min-Max Scaling based on realistic dataset bounds
+    if field == 'age_of_driver':
+        if fval > 1.0:
+            return max(0.0, min(1.0, (fval - 18.0) / (74.0 - 18.0)))
+        return fval
+    elif field == 'safety_rating':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 100.0))
+        return fval
+    elif field == 'annual_income':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 150000.0))
+        return fval
+    elif field in ['high_education', 'address_change', 'police_report']:
+        return 1.0 if fval >= 0.5 else 0.0
+    elif field == 'past_num_of_claims':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 6.0))
+        return fval
+    elif field == 'liab_prct':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 100.0))
+        return fval
+    elif field == 'age_of_vehicle':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 10.0))
+        return fval
+    elif field == 'vehicle_price':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 100000.0))
+        return fval
+    elif field == 'total_claim':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 100000.0))
+        return fval
+    elif field == 'injury_claim':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 50000.0))
+        return fval
+    elif field == 'policy_deductible':
+        if fval > 1.0:
+            return max(0.0, min(1.0, (fval - 500.0) / (2000.0 - 500.0)))
+        return fval
+    elif field == 'annual_premium':
+        if fval > 1.0:
+            return max(0.0, min(1.0, (fval - 500.0) / (3000.0 - 500.0)))
+        return fval
+    elif field == 'days_open':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 365.0))
+        return fval
+    elif field == 'form_defects':
+        if fval > 1.0:
+            return max(0.0, min(1.0, fval / 12.0))
+        return fval
+    
+    return max(0.0, min(1.0, fval))
+
 
 def transform_input(data):
     """
     Convert raw frontend JSON to a 50-feature numpy array
     matching the model's expected input format.
     """
-    # Start with a dict of all features set to 0
     features = {name: 0.0 for name in FEATURE_NAMES}
 
-    # 1) Set numeric features (already expected as 0-1 floats from frontend)
-    for field in NUMERIC_FEATURES:
+    # 1) Scale numeric & binary features
+    for field in FEATURE_NAMES:
         if field in data:
-            try:
-                features[field] = float(data[field])
-            except (ValueError, TypeError):
-                features[field] = 0.0
+            features[field] = scale_numeric_value(field, data[field])
 
     # 2) One-hot encode categorical features
     for cat_field, value_map in CATEGORICAL_MAPPINGS.items():
@@ -123,7 +188,7 @@ def transform_input(data):
                 if one_hot_col in features:
                     features[one_hot_col] = 1.0
 
-    # 3) Build the feature array in the correct column order
+    # 3) Build the feature array in exact column order
     feature_array = np.array([[features[name] for name in FEATURE_NAMES]])
     return feature_array
 
@@ -132,17 +197,13 @@ def transform_input(data):
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Accepts JSON claim data, transforms it, runs the model,
-    and returns prediction + probability.
-    """
     try:
         data = request.get_json()
 
         if not data:
             return jsonify({'message': 'No input data provided'}), 400
 
-        # Transform the raw input to model-ready features
+        # Transform and auto-scale raw input
         features = transform_input(data)
 
         # Get prediction (0 = Not Fraud, 1 = Fraud)
@@ -151,7 +212,6 @@ def predict():
         # Get probability scores [P(Not Fraud), P(Fraud)]
         probabilities = model.predict_proba(features)[0]
 
-        # Build response
         result = {
             'prediction': 'Fraud' if prediction == 1 else 'Not Fraud',
             'probability': round(float(probabilities[1]), 2)  # P(Fraud)
@@ -165,7 +225,6 @@ def predict():
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Health check endpoint."""
     return jsonify({
         'status': 'healthy',
         'model': type(model).__name__,
@@ -173,7 +232,6 @@ def health():
     }), 200
 
 
-# ── Run the server ───────────────────────────────────────────
 if __name__ == '__main__':
     print("\n>> FraudShield API running on http://localhost:5000")
     print("   POST /predict  — Submit claim for fraud prediction")
