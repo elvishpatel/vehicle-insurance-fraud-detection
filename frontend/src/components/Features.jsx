@@ -1,0 +1,85 @@
+import React, { useEffect, useRef } from 'react';
+import { FaBrain, FaTree, FaBolt, FaShieldAlt } from 'react-icons/fa';
+import './Features.css';
+
+const features = [
+  { 
+    icon: FaBrain, 
+    title: 'Machine Learning Prediction', 
+    description: 'Advanced ML algorithms analyze claim patterns to identify potential fraud with high accuracy and confidence scores.' 
+  },
+  { 
+    icon: FaTree, 
+    title: 'Decision Tree Classification', 
+    description: 'Transparent decision-making process using trained Decision Tree models for interpretable and reliable predictions.' 
+  },
+  { 
+    icon: FaBolt, 
+    title: 'Fast Real-Time Analysis', 
+    description: 'Get instant predictions in under 2 seconds. Our optimized pipeline processes claims data rapidly for immediate results.' 
+  },
+  { 
+    icon: FaShieldAlt, 
+    title: 'Accurate Fraud Detection', 
+    description: 'Industry-leading accuracy powered by extensive training on real insurance claim data with rigorous validation.' 
+  }
+];
+
+const Features = () => {
+  const cardsRef = useRef([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('features__card--visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    cardsRef.current.forEach(card => {
+      if (card) {
+        observer.observe(card);
+      }
+    });
+
+    return () => {
+      if (cardsRef.current) {
+        cardsRef.current.forEach(card => {
+          if (card) observer.unobserve(card);
+        });
+      }
+    };
+  }, []);
+
+  return (
+    <section id="features" className="features">
+      <div className="features__header">
+        <h2 className="features__title">Powerful Features</h2>
+        <p className="features__subtitle">Built with cutting-edge technology to deliver accurate and reliable fraud detection</p>
+      </div>
+      <div className="features__grid">
+        {features.map((feature, index) => {
+          const Icon = feature.icon;
+          return (
+            <div 
+              key={index} 
+              className="features__card"
+              ref={el => cardsRef.current[index] = el}
+              style={{ transitionDelay: `${index * 0.1}s` }}
+            >
+              <div className="features__card-icon">
+                <Icon />
+              </div>
+              <h3 className="features__card-title">{feature.title}</h3>
+              <p className="features__card-description">{feature.description}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+};
+
+export default Features;
