@@ -21,18 +21,12 @@ const numericFields = [
 ];
 
 const dropdownFields = [
-  { name: 'high_education', label: 'Higher Education Degree', options: ['', 'Yes', 'No'] },
+  { name: 'gender', label: 'Gender', options: ['', 'Male', 'Female'] },
   { name: 'address_change', label: 'Recent Address Change', options: ['', 'Yes', 'No'] },
   { name: 'police_report', label: 'Police Report Filed', options: ['', 'Yes', 'No'] },
-  { name: 'gender', label: 'Gender', options: ['', 'Male', 'Female'] },
-  { name: 'marital_status', label: 'Marital Status', options: ['', 'Single', 'Married', 'Other'] },
   { name: 'property_status', label: 'Property Status', options: ['', 'Own', 'Rent'] },
-  { name: 'claim_day_of_week', label: 'Claim Day of Week', options: ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
   { name: 'accident_site', label: 'Accident Site', options: ['', 'Highway', 'Local', 'Parking Lot'] },
-  { name: 'witness_present', label: 'Witness Present', options: ['', 'Yes', 'No', 'Unknown'] },
-  { name: 'channel', label: 'Sales Channel', options: ['', 'Broker', 'Online', 'Phone'] },
   { name: 'vehicle_category', label: 'Vehicle Category', options: ['', 'Compact', 'Medium', 'Large'] },
-  { name: 'vehicle_color', label: 'Vehicle Color', options: ['', 'Black', 'Blue', 'Gray', 'Red', 'Silver', 'White', 'Other'] },
 ];
 
 const PredictionForm = ({ onResult }) => {
