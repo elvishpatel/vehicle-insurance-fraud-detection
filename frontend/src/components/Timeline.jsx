@@ -56,21 +56,27 @@ const Timeline = () => {
       </div>
       <div className="timeline__container" ref={containerRef}>
         <div className="timeline__line"></div>
-        {steps.map((step, index) => (
-          <div key={index} className="timeline__step">
-            <div className="timeline__content">
-              <div className="timeline__icon">
-                <step.icon />
+        {steps.map((step, index) => {
+          const isRight = index % 2 === 1;
+          return (
+            <div 
+              key={index} 
+              className={`timeline__step ${isRight ? 'timeline__step--right' : 'timeline__step--left'}`}
+            >
+              <div className="timeline__content">
+                <div className="timeline__icon">
+                  <step.icon />
+                </div>
+                <h3 className="timeline__step-title">{step.title}</h3>
+                <p className="timeline__step-description">{step.description}</p>
               </div>
-              <h3 className="timeline__step-title">{step.title}</h3>
-              <p className="timeline__step-description">{step.description}</p>
+              <div className="timeline__node">
+                <span className="timeline__number">{index + 1}</span>
+              </div>
+              <div className="timeline__spacer"></div>
             </div>
-            <div className="timeline__node">
-              {index + 1}
-            </div>
-            <div className="timeline__spacer"></div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

@@ -46,7 +46,7 @@ const Hero = () => {
         
         <div className="hero__stats">
           <div className="hero__stat-card hero__stat-card--1">
-            <div className="hero__stat-value gradient-text">99.2%</div>
+            <div className="hero__stat-value gradient-text">78.1%</div>
             <div className="hero__stat-label">Accuracy</div>
           </div>
           <div className="hero__stat-card hero__stat-card--2">
@@ -54,8 +54,8 @@ const Hero = () => {
             <div className="hero__stat-label">Analysis</div>
           </div>
           <div className="hero__stat-card hero__stat-card--3">
-            <div className="hero__stat-value gradient-text">10K+</div>
-            <div className="hero__stat-label">Claims</div>
+            <div className="hero__stat-value gradient-text">11.7K+</div>
+            <div className="hero__stat-label">Claims Trained</div>
           </div>
         </div>
       </div>
