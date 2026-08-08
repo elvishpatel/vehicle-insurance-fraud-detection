@@ -25,7 +25,7 @@ const Footer = () => {
             <h4 className="footer__column-title">Tech Stack</h4>
             <ul className="footer__list">
               <li className="footer__list-item">
-                <span className="footer__list-link"><SiScikitlearn /> Decision Tree ML</span>
+                <span className="footer__list-link"><SiScikitlearn /> Decision Tree</span>
               </li>
               <li className="footer__list-item">
                 <span className="footer__list-link"><SiFlask /> Flask API</span>
@@ -69,7 +69,9 @@ const Footer = () => {
 
         <div className="footer__bottom">
           <div className="footer__made-with">
-            Made with <FaHeart className="footer__heart" /> by FraudShield Team
+            Made with <FaHeart className="footer__heart" /> by{' '}
+            <span className="footer__author-first">Elvish</span>{' '}
+            <span className="footer__author-last">Patel</span>
           </div>
           <div className="footer__copyright">
             &copy; 2026 All rights reserved
