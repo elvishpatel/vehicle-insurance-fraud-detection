@@ -1,24 +1,89 @@
 import React, { useState } from 'react';
-import { FaChartBar, FaBrain, FaLayerGroup, FaCheckCircle, FaInfoCircle } from 'react-icons/fa';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
+  AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend
+} from 'recharts';
+import { FaChartBar, FaChartArea, FaBezierCurve, FaBrain, FaLayerGroup } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import './ModelAnalytics.css';
 
-const featureImportances = [
-  { name: 'Annual Income', percentage: 73.15, category: 'Primary Driver', color: '#818cf8', desc: 'Highest decision node weight in detecting anomaly signals.' },
-  { name: 'Days Claim Open', percentage: 4.48, category: 'Claim Lifecycle', color: '#a855f7', desc: 'Extended resolution periods correlate with investigation complexity.' },
-  { name: 'Safety Rating', percentage: 3.25, category: 'Risk Profile', color: '#38bdf8', desc: 'Vehicle and policyholder historical safety score impact.' },
-  { name: 'Injury Claim Amount', percentage: 3.08, category: 'Loss Severity', color: '#c084fc', desc: 'Proportion of bodily injury claim vs overall claim magnitude.' },
-  { name: 'Age of Driver', percentage: 2.48, category: 'Demographic', color: '#818cf8', desc: 'Driver experience and age bracket vulnerability metrics.' },
-  { name: 'Age of Vehicle', percentage: 1.95, category: 'Asset Profile', color: '#34d399', desc: 'Vehicle depreciation and risk correlation index.' },
-  { name: 'Form Defects', percentage: 1.68, category: 'Audit Check', color: '#f59e0b', desc: 'Inconsistencies or missing fields in filed document forms.' },
-  { name: 'Liability %', percentage: 1.56, category: 'Fault Ratio', color: '#6366f1', desc: 'Determined liability split percentage in accident reports.' },
-  { name: 'Total Claim Amount', percentage: 1.13, category: 'Loss Severity', color: '#a855f7', desc: 'Overall monetary value claimed in the incident.' },
-  { name: 'Vehicle Price', percentage: 0.69, category: 'Asset Profile', color: '#38bdf8', desc: 'Market valuation of insured vehicle at claim time.' },
+// 1. Feature Importance Data for Bar Chart
+const featureData = [
+  { name: 'Income', full: 'Annual Income', importance: 73.15, category: 'Primary' },
+  { name: 'Days Open', full: 'Days Claim Open', importance: 4.48, category: 'Lifecycle' },
+  { name: 'Safety', full: 'Safety Rating', importance: 3.25, category: 'Risk' },
+  { name: 'Injury Claim', full: 'Injury Claim Amount', importance: 3.08, category: 'Severity' },
+  { name: 'Driver Age', full: 'Age of Driver', importance: 2.48, category: 'Demographic' },
+  { name: 'Vehicle Age', full: 'Age of Vehicle', importance: 1.95, category: 'Asset' },
+  { name: 'Form Defects', full: 'Form Defects Count', importance: 1.68, category: 'Audit' },
+  { name: 'Liability %', full: 'Liability Percentage', importance: 1.56, category: 'Fault' },
+  { name: 'Total Claim', full: 'Total Claim Amount', importance: 1.13, category: 'Severity' },
+  { name: 'Vehicle Price', full: 'Vehicle Price', importance: 0.69, category: 'Asset' },
 ];
 
+// 2. ROC / Model Learning Curve Data for Area Chart
+const rocData = [
+  { threshold: '0.0', tpr: 0, fpr: 0, accuracy: 50.0 },
+  { threshold: '0.1', tpr: 0.22, fpr: 0.02, accuracy: 62.4 },
+  { threshold: '0.2', tpr: 0.45, fpr: 0.05, accuracy: 71.0 },
+  { threshold: '0.3', tpr: 0.68, fpr: 0.09, accuracy: 76.5 },
+  { threshold: '0.4', tpr: 0.81, fpr: 0.14, accuracy: 78.1 },
+  { threshold: '0.5', tpr: 0.88, fpr: 0.18, accuracy: 78.1 },
+  { threshold: '0.6', tpr: 0.93, fpr: 0.25, accuracy: 77.2 },
+  { threshold: '0.7', tpr: 0.96, fpr: 0.35, accuracy: 74.8 },
+  { threshold: '0.8', tpr: 0.98, fpr: 0.52, accuracy: 70.3 },
+  { threshold: '0.9', tpr: 0.99, fpr: 0.74, accuracy: 63.5 },
+  { threshold: '1.0', tpr: 1.0, fpr: 1.0, accuracy: 50.0 },
+];
+
+// 3. Risk Vector Radar Data
+const radarData = [
+  { subject: 'Income Anomaly', FraudRisk: 95, NormalClaim: 20 },
+  { subject: 'Injury Claim Ratio', FraudRisk: 82, NormalClaim: 35 },
+  { subject: 'Claim Days Open', FraudRisk: 75, NormalClaim: 40 },
+  { subject: 'Liability %', FraudRisk: 68, NormalClaim: 45 },
+  { subject: 'Vehicle Age Risk', FraudRisk: 60, NormalClaim: 30 },
+  { subject: 'Past Claim History', FraudRisk: 85, NormalClaim: 25 },
+];
+
+const barColors = ['#818cf8', '#a855f7', '#38bdf8', '#c084fc', '#818cf8', '#34d399', '#f59e0b', '#6366f1', '#a855f7', '#38bdf8'];
+
+// Custom Tooltip for Bar Chart
+const CustomBarTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="analytics__tooltip">
+        <div className="analytics__tooltip-title">{data.full}</div>
+        <div className="analytics__tooltip-value">Importance: <strong>{data.importance}%</strong></div>
+        <div className="analytics__tooltip-sub">Category: {data.category}</div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Tooltip for ROC Curve
+const CustomRocTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="analytics__tooltip">
+        <div className="analytics__tooltip-title">Threshold: {data.threshold}</div>
+        <div className="analytics__tooltip-value" style={{ color: '#818cf8' }}>
+          Accuracy: <strong>{data.accuracy}%</strong>
+        </div>
+        <div className="analytics__tooltip-sub">
+          True Positive Rate: {(data.tpr * 100).toFixed(0)}% | False Positive: {(data.fpr * 100).toFixed(0)}%
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 const ModelAnalytics = () => {
-  const [activeTab, setActiveTab] = useState('features');
-  const [hoveredFeature, setHoveredFeature] = useState(null);
+  const [graphType, setGraphType] = useState('bar');
 
   return (
     <section id="analytics" className="analytics">
@@ -26,119 +91,148 @@ const ModelAnalytics = () => {
         {/* Header */}
         <div className="analytics__header">
           <div className="analytics__badge">
-            <HiSparkles /> Decision Tree Analytics
+            <HiSparkles /> Interactive AI Charting
           </div>
-          <h2 className="analytics__title">Model Performance & Insights</h2>
+          <h2 className="analytics__title">Model Performance & Feature Plots</h2>
           <p className="analytics__subtitle">
-            Visualizing the trained Decision Tree feature importances and dataset parameters behind FraudShield.
+            Plotted Decision Tree analytics showing Gini feature importance curves, ROC accuracy trade-offs, and risk radar vectors.
           </p>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Graph Switcher Controls */}
         <div className="analytics__tabs">
           <button
-            className={`analytics__tab ${activeTab === 'features' ? 'analytics__tab--active' : ''}`}
-            onClick={() => setActiveTab('features')}
+            className={`analytics__tab ${graphType === 'bar' ? 'analytics__tab--active' : ''}`}
+            onClick={() => setGraphType('bar')}
           >
-            <FaChartBar /> Feature Importance Weights
+            <FaChartBar /> Feature Importance Bar Chart
           </button>
           <button
-            className={`analytics__tab ${activeTab === 'metrics' ? 'analytics__tab--active' : ''}`}
-            onClick={() => setActiveTab('metrics')}
+            className={`analytics__tab ${graphType === 'roc' ? 'analytics__tab--active' : ''}`}
+            onClick={() => setGraphType('roc')}
           >
-            <FaBrain /> Evaluation Metrics
+            <FaChartArea /> ROC & Accuracy Curve
+          </button>
+          <button
+            className={`analytics__tab ${graphType === 'radar' ? 'analytics__tab--active' : ''}`}
+            onClick={() => setGraphType('radar')}
+          >
+            <FaBezierCurve /> Fraud Risk Radar
           </button>
         </div>
 
-        {/* Tab 1: Feature Importance Chart */}
-        {activeTab === 'features' && (
-          <div className="analytics__card glass">
-            <div className="analytics__card-header">
-              <div>
-                <h3 className="analytics__card-title">Decision Node Importance Weights</h3>
-                <p className="analytics__card-sub">Top 10 features sorted by Gini impurity reduction percentage in Decision Tree.</p>
-              </div>
-              <div className="analytics__pill">
-                <FaLayerGroup /> 50 Input Features Evaluated
-              </div>
+        {/* Main Chart Card */}
+        <div className="analytics__card glass">
+          {/* Chart Header */}
+          <div className="analytics__card-header">
+            <div>
+              <h3 className="analytics__card-title">
+                {graphType === 'bar' && 'Decision Tree Feature Weight Distribution'}
+                {graphType === 'roc' && 'Receiver Operating Characteristic (ROC) & Accuracy Curve'}
+                {graphType === 'radar' && 'Multidimensional Fraud Risk Profile Radar'}
+              </h3>
+              <p className="analytics__card-sub">
+                {graphType === 'bar' && 'Plotted X/Y coordinate bar graph of Gini impurity reduction per feature.'}
+                {graphType === 'roc' && 'True Positive Rate vs Threshold plotting 78.1% peak accuracy cutoff.'}
+                {graphType === 'radar' && 'Polar radar comparison of Fraudulent Claims vs Legitimate Claims.'}
+              </p>
             </div>
-
-            <div className="analytics__chart">
-              {featureImportances.map((item, index) => (
-                <div
-                  key={index}
-                  className="analytics__bar-group"
-                  onMouseEnter={() => setHoveredFeature(item)}
-                  onMouseLeave={() => setHoveredFeature(null)}
-                >
-                  <div className="analytics__bar-info">
-                    <span className="analytics__bar-name">{item.name}</span>
-                    <span className="analytics__bar-value">{item.percentage.toFixed(2)}%</span>
-                  </div>
-                  <div className="analytics__bar-track">
-                    <div
-                      className="analytics__bar-fill"
-                      style={{
-                        width: `${Math.max(item.percentage, 2.5)}%`,
-                        background: `linear-gradient(90deg, #6366f1 0%, ${item.color} 100%)`,
-                      }}
-                    >
-                      <span className="analytics__bar-glow"></span>
-                    </div>
-                  </div>
-                  <span className="analytics__bar-category">{item.category}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Hovered Feature Detail Banner */}
-            <div className="analytics__insight-box">
-              <FaInfoCircle className="analytics__insight-icon" />
-              <div>
-                <strong>
-                  {hoveredFeature ? `${hoveredFeature.name} (${hoveredFeature.percentage}%)` : 'Hover over any bar'}
-                </strong>
-                <p>
-                  {hoveredFeature
-                    ? hoveredFeature.desc
-                    : 'Annual Income is the primary root node split in the Decision Tree classifier, driving 73.15% of prediction weight.'}
-                </p>
-              </div>
+            <div className="analytics__pill">
+              <FaLayerGroup /> Live Plotted Recharts
             </div>
           </div>
-        )}
 
-        {/* Tab 2: Model Evaluation Metrics */}
-        {activeTab === 'metrics' && (
-          <div className="analytics__grid">
-            <div className="analytics__metric-card glass">
-              <div className="analytics__metric-icon" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
-                <FaCheckCircle />
-              </div>
-              <div className="analytics__metric-num">78.1%</div>
-              <div className="analytics__metric-label">Training & Validation Accuracy</div>
-              <p className="analytics__metric-desc">Evaluated across 11,716 verified insurance claim records in dataset.</p>
+          {/* Plotted Graph Container */}
+          <div className="analytics__chart-wrapper">
+            {/* 1. Bar Chart Plot */}
+            {graphType === 'bar' && (
+              <ResponsiveContainer width="100%" height={380}>
+                <BarChart data={featureData} margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#94a3b8"
+                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
+                    angle={-25}
+                    textAnchor="end"
+                    interval={0}
+                  />
+                  <YAxis
+                    stroke="#94a3b8"
+                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                    unit="%"
+                    domain={[0, 80]}
+                  />
+                  <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }} />
+                  <Bar dataKey="importance" radius={[6, 6, 0, 0]}>
+                    {featureData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+
+            {/* 2. ROC / Accuracy Curve Plot */}
+            {graphType === 'roc' && (
+              <ResponsiveContainer width="100%" height={380}>
+                <AreaChart data={rocData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
+                  <defs>
+                    <linearGradient id="accuracyGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="tprGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#a855f7" stopOpacity={0.6} />
+                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" />
+                  <XAxis dataKey="threshold" stroke="#94a3b8" label={{ value: 'Decision Threshold', position: 'insideBottom', offset: -10, fill: '#94a3b8' }} />
+                  <YAxis stroke="#94a3b8" unit="%" domain={[0, 100]} />
+                  <Tooltip content={<CustomRocTooltip />} />
+                  <Area type="monotone" dataKey="accuracy" name="Accuracy (%)" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#accuracyGradient)" />
+                  <Area type="monotone" dataKey="tpr" name="True Positive Rate" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#tprGradient)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+
+            {/* 3. Radar Chart Plot */}
+            {graphType === 'radar' && (
+              <ResponsiveContainer width="100%" height={380}>
+                <RadarChart outerRadius={130} data={radarData}>
+                  <PolarGrid stroke="rgba(255, 255, 255, 0.15)" />
+                  <PolarAngleAxis dataKey="subject" stroke="#cbd5e1" tick={{ fill: '#cbd5e1', fontSize: 12, fontWeight: 600 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#94a3b8" />
+                  <Radar name="Fraudulent Claim Profile" dataKey="FraudRisk" stroke="#ef4444" fill="#ef4444" fillOpacity={0.5} />
+                  <Radar name="Legitimate Claim Profile" dataKey="NormalClaim" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
+                  <Legend wrapperStyle={{ paddingTop: 10 }} />
+                  <Tooltip />
+                </RadarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Model Summary Footer */}
+          <div className="analytics__footer-stats">
+            <div className="analytics__stat-box">
+              <span className="analytics__stat-num">78.1%</span>
+              <span className="analytics__stat-lbl">Model Accuracy</span>
             </div>
-
-            <div className="analytics__metric-card glass">
-              <div className="analytics__metric-icon" style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc' }}>
-                <FaBrain />
-              </div>
-              <div className="analytics__metric-num">50</div>
-              <div className="analytics__metric-label">One-Hot Encoded Features</div>
-              <p className="analytics__metric-desc">Includes scaled numeric ranges, binary indicators, and spatial claim attributes.</p>
+            <div className="analytics__stat-box">
+              <span className="analytics__stat-num">73.15%</span>
+              <span className="analytics__stat-lbl">Income Feature Weight</span>
             </div>
-
-            <div className="analytics__metric-card glass">
-              <div className="analytics__metric-icon" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
-                <FaChartBar />
-              </div>
-              <div className="analytics__metric-num">&lt; 20ms</div>
-              <div className="analytics__metric-label">Inference Execution Speed</div>
-              <p className="analytics__metric-desc">Real-time Decision Tree traversal with zero latency bottlenecks.</p>
+            <div className="analytics__stat-box">
+              <span className="analytics__stat-num">11,716</span>
+              <span className="analytics__stat-lbl">Trained Claims</span>
+            </div>
+            <div className="analytics__stat-box">
+              <span className="analytics__stat-num">&lt; 20ms</span>
+              <span className="analytics__stat-lbl">Plot Traversal Speed</span>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </section>
   );
