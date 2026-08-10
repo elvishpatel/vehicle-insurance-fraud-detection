@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import ModelAnalytics from './components/ModelAnalytics';
 import Features from './components/Features';
 import Timeline from './components/Timeline';
 import PredictionForm from './components/PredictionForm';
@@ -57,6 +58,7 @@ function App() {
     <div className="app">
       <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       <Hero />
+      <ModelAnalytics />
       <Features />
       <Timeline />
       <PredictionForm onResult={handleResult} />

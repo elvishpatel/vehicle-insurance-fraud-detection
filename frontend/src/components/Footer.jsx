@@ -59,8 +59,24 @@ const Footer = () => {
           <div className="footer__column">
             <h4 className="footer__column-title">Connect</h4>
             <div className="footer__socials">
-              <a href="#" className="footer__social-link"><FaGithub /></a>
-              <a href="#" className="footer__social-link"><FaLinkedin /></a>
+              <a 
+                href="https://github.com/elvishpatel/vehicle-insurance-fraud-detection" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="footer__social-link"
+                aria-label="GitHub Repository"
+              >
+                <FaGithub />
+              </a>
+              <a 
+                href="https://www.linkedin.com/in/elvish-kansagara" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="footer__social-link"
+                aria-label="LinkedIn Profile"
+              >
+                <FaLinkedin />
+              </a>
             </div>
           </div>
         </div>
@@ -70,8 +86,15 @@ const Footer = () => {
         <div className="footer__bottom">
           <div className="footer__made-with">
             Made with <FaHeart className="footer__heart" /> by{' '}
-            <span className="footer__author-first">Elvish</span>{' '}
-            <span className="footer__author-last">Patel</span>
+            <a 
+              href="https://elvishpatel.in" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="footer__author-link"
+            >
+              <span className="footer__author-first">Elvish</span>{' '}
+              <span className="footer__author-last">Patel</span>
+            </a>
           </div>
           <div className="footer__copyright">
             &copy; 2026 All rights reserved

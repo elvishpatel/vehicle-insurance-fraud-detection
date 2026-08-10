@@ -6,18 +6,18 @@ import './PredictionForm.css';
 
 const driverPolicyFields = [
   { name: 'age_of_driver', label: 'Age of Driver (Years)', placeholder: 'e.g. 35', type: 'number' },
-  { name: 'annual_income', label: 'Annual Income ($)', placeholder: 'e.g. 60000', type: 'number' },
+  { name: 'annual_income', label: 'Annual Income (₹)', placeholder: 'e.g. ₹60,000', type: 'number' },
   { name: 'gender', label: 'Gender', type: 'select', options: ['', 'Male', 'Female'] },
   { name: 'safety_rating', label: 'Safety Rating (0-100)', placeholder: 'e.g. 85', type: 'number' },
   { name: 'property_status', label: 'Property Status', type: 'select', options: ['', 'Own', 'Rent'] },
   { name: 'address_change', label: 'Recent Address Change', type: 'select', options: ['', 'Yes', 'No'] },
-  { name: 'annual_premium', label: 'Annual Premium ($)', placeholder: 'e.g. 1200', type: 'number' },
-  { name: 'policy_deductible', label: 'Policy Deductible ($)', placeholder: 'e.g. 500', type: 'number' },
+  { name: 'annual_premium', label: 'Annual Premium (₹)', placeholder: 'e.g. ₹1,200', type: 'number' },
+  { name: 'policy_deductible', label: 'Policy Deductible (₹)', placeholder: 'e.g. ₹500', type: 'number' },
 ];
 
 const claimFields = [
-  { name: 'total_claim', label: 'Total Claim Amount ($)', placeholder: 'e.g. 15000', type: 'number' },
-  { name: 'injury_claim', label: 'Injury Claim Amount ($)', placeholder: 'e.g. 3000', type: 'number' },
+  { name: 'total_claim', label: 'Total Claim Amount (₹)', placeholder: 'e.g. ₹15,000', type: 'number' },
+  { name: 'injury_claim', label: 'Injury Claim Amount (₹)', placeholder: 'e.g. ₹3,000', type: 'number' },
   { name: 'days_open', label: 'Days Claim Open', placeholder: 'e.g. 30', type: 'number' },
   { name: 'police_report', label: 'Police Report Filed', type: 'select', options: ['', 'Yes', 'No'] },
   { name: 'accident_site', label: 'Accident Site', type: 'select', options: ['', 'Highway', 'Local', 'Parking Lot'] },
@@ -28,7 +28,7 @@ const claimFields = [
 
 const vehicleFields = [
   { name: 'age_of_vehicle', label: 'Vehicle Age (Years)', placeholder: 'e.g. 4', type: 'number' },
-  { name: 'vehicle_price', label: 'Vehicle Price ($)', placeholder: 'e.g. 25000', type: 'number' },
+  { name: 'vehicle_price', label: 'Vehicle Price (₹)', placeholder: 'e.g. ₹25,000', type: 'number' },
   { name: 'vehicle_category', label: 'Vehicle Category', type: 'select', options: ['', 'Compact', 'Medium', 'Large'] },
 ];
 

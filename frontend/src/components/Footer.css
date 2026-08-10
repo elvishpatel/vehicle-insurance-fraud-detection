@@ -129,6 +129,19 @@
   gap: 6px;
 }
 
+.footer__author-link {
+  text-decoration: none;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.footer__author-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
 .footer__author-first {
   background: var(--gradient-primary, linear-gradient(135deg, #6366f1, #a855f7));
   -webkit-background-clip: text;
