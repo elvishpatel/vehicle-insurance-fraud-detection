@@ -44,17 +44,6 @@ const ModelAnalytics = () => {
   return (
     <section id="analytics" className="analytics">
       <div className="analytics__container">
-        {/* Header */}
-        <div className="analytics__header">
-          <div className="analytics__badge">
-            <HiSparkles /> AI Fraud Intelligence
-          </div>
-          <h2 className="analytics__title">Fraud Prediction Dashboard</h2>
-          <p className="analytics__subtitle">
-            Real-time analytics monitoring monthly fraud detection trends powered by Decision Tree AI.
-          </p>
-        </div>
-
         {/* Mac Window Fraud Prediction Chart */}
         <div className="dash__mac-window">
           {/* Mac Window Title Bar */}
