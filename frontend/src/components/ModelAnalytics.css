@@ -4,14 +4,14 @@
 }
 
 .analytics__container {
-  max-width: 1180px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
 .analytics__header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -53,148 +53,13 @@
   max-width: 680px;
 }
 
-/* ── ROW 1: 4 TOP STAT CARDS (Image 4) ── */
-.dash__stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 28px;
-}
-
-.dash__stat-card {
-  padding: 22px;
-  border-radius: var(--radius-lg, 16px);
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.dash__stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(99, 102, 241, 0.15);
-}
-
-.dash__stat-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.dash__stat-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-sm, 8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-}
-
-.dash__stat-icon--blue {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
-}
-
-.dash__stat-icon--red {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
-
-.dash__stat-icon--green {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-}
-
-.dash__stat-icon--purple {
-  background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
-}
-
-.dash__stat-title {
-  font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.dash__stat-num {
-  font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: var(--color-text);
-  line-height: 1.2;
-}
-
-.dash__stat-sub {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 12px;
-}
-
-.dash__sparkline {
-  margin-top: 4px;
-}
-
-/* Pie Chart Inside Stat Card */
-.dash__pie-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.dash__pie-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.dash__legend-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.75rem;
-}
-
-.dash__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 6px;
-  display: inline-block;
-}
-
-.dash__legend-name {
-  color: var(--color-text-secondary);
-  flex: 1;
-}
-
-.dash__legend-val {
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-/* ── ROW 2: MAC WINDOW DASHBOARD + RIGHT COL (Image 2 & 3) ── */
-.dash__main-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
-  margin-bottom: 28px;
-}
-
 /* Mac Window Card */
 .dash__mac-window {
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(99, 102, 241, 0.25);
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 35px rgba(99, 102, 241, 0.15);
   position: relative;
 }
 
@@ -243,10 +108,10 @@
 }
 
 .dash__mac-body {
-  padding: 24px 20px 16px 12px;
+  padding: 28px 24px 20px 10px;
 }
 
-/* Tooltip for Mac Spline */
+/* Tooltip */
 .dash__tooltip {
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(129, 140, 248, 0.4);
@@ -267,166 +132,8 @@
   font-weight: 700;
 }
 
-/* Right Column (Image 3 Right Column) */
-.dash__right-col {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.dash__side-card {
-  padding: 24px;
-  border-radius: var(--radius-lg, 16px);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex: 1;
-}
-
-.dash__side-title {
-  font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 16px;
-}
-
-.dash__donut-box {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.dash__side-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dash__side-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.dash__side-name {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-}
-
-.dash__side-num {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--color-text);
-}
-
-/* Radial Gauge Meter */
-.dash__radial-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 0;
-}
-
-.dash__radial-ring {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  border: 10px solid #10b981;
-  border-top-color: rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
-  margin-bottom: 12px;
-}
-
-.dash__radial-val {
-  font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--color-text);
-}
-
-.dash__radial-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-/* ── ROW 3: FRAUD VS NOT FRAUD OVER TIME (Image 1) ── */
-.dash__line-card {
-  padding: 32px;
-  border-radius: var(--radius-lg, 16px);
-
-}
-
-.dash__line-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-}
-
-.dash__line-title {
-  font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--color-text);
-  margin-bottom: 4px;
-}
-
-.dash__line-sub {
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-}
-
-.dash__line-legend-top {
-  display: flex;
-  gap: 16px;
-}
-
-.dash__legend-badge {
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: var(--radius-full, 9999px);
-}
-
-.dash__legend-badge--blue {
-  background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.dash__legend-badge--red {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.dash__line-chart-wrapper {
-  margin-top: 12px;
-}
-
-@media (max-width: 1024px) {
-  .dash__stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .dash__main-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 640px) {
-  .dash__stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .dash__line-header {
-    flex-direction: column;
-    gap: 12px;
+  .analytics__title {
+    font-size: 2rem;
   }
 }
