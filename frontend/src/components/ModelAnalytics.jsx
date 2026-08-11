@@ -1,81 +1,98 @@
 import React, { useState } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
-  AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar
 } from 'recharts';
-import { FaChartBar, FaChartArea, FaBezierCurve, FaBrain, FaLayerGroup } from 'react-icons/fa';
+import { FaShieldAlt, FaExclamationTriangle, FaCheckCircle, FaCar, FaChartLine } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import './ModelAnalytics.css';
 
-// 1. Feature Importance Data for Bar Chart
-const featureData = [
-  { name: 'Income', full: 'Annual Income', importance: 73.15, category: 'Primary' },
-  { name: 'Days Open', full: 'Days Claim Open', importance: 4.48, category: 'Lifecycle' },
-  { name: 'Safety', full: 'Safety Rating', importance: 3.25, category: 'Risk' },
-  { name: 'Injury Claim', full: 'Injury Claim Amount', importance: 3.08, category: 'Severity' },
-  { name: 'Driver Age', full: 'Age of Driver', importance: 2.48, category: 'Demographic' },
-  { name: 'Vehicle Age', full: 'Age of Vehicle', importance: 1.95, category: 'Asset' },
-  { name: 'Form Defects', full: 'Form Defects Count', importance: 1.68, category: 'Audit' },
-  { name: 'Liability %', full: 'Liability Percentage', importance: 1.56, category: 'Fault' },
-  { name: 'Total Claim', full: 'Total Claim Amount', importance: 1.13, category: 'Severity' },
-  { name: 'Vehicle Price', full: 'Vehicle Price', importance: 0.69, category: 'Asset' },
+// ── 1. Fraud vs Not Fraud Over Time (Image 1 Data) ─────────────
+const monthlyComparisonData = [
+  { month: 'Jan', NotFraud: 430, Fraud: 200 },
+  { month: 'Feb', NotFraud: 490, Fraud: 140 },
+  { month: 'Mar', NotFraud: 590, Fraud: 200 },
+  { month: 'Apr', NotFraud: 460, Fraud: 155 },
+  { month: 'May', NotFraud: 540, Fraud: 230 },
+  { month: 'Jun', NotFraud: 690, Fraud: 265 },
+  { month: 'Jul', NotFraud: 550, Fraud: 220 },
+  { month: 'Aug', NotFraud: 690, Fraud: 330 },
+  { month: 'Sep', NotFraud: 665, Fraud: 340 },
+  { month: 'Oct', NotFraud: 545, Fraud: 225 },
+  { month: 'Nov', NotFraud: 580, Fraud: 240 },
+  { month: 'Dec', NotFraud: 685, Fraud: 365 },
 ];
 
-// 2. ROC / Model Learning Curve Data for Area Chart
-const rocData = [
-  { threshold: '0.0', tpr: 0, fpr: 0, accuracy: 50.0 },
-  { threshold: '0.1', tpr: 0.22, fpr: 0.02, accuracy: 62.4 },
-  { threshold: '0.2', tpr: 0.45, fpr: 0.05, accuracy: 71.0 },
-  { threshold: '0.3', tpr: 0.68, fpr: 0.09, accuracy: 76.5 },
-  { threshold: '0.4', tpr: 0.81, fpr: 0.14, accuracy: 78.1 },
-  { threshold: '0.5', tpr: 0.88, fpr: 0.18, accuracy: 78.1 },
-  { threshold: '0.6', tpr: 0.93, fpr: 0.25, accuracy: 77.2 },
-  { threshold: '0.7', tpr: 0.96, fpr: 0.35, accuracy: 74.8 },
-  { threshold: '0.8', tpr: 0.98, fpr: 0.52, accuracy: 70.3 },
-  { threshold: '0.9', tpr: 0.99, fpr: 0.74, accuracy: 63.5 },
-  { threshold: '1.0', tpr: 1.0, fpr: 1.0, accuracy: 50.0 },
+// ── 2. Fraud Prediction Dashboard Trend (Image 2 & 3 Data) ──────
+const dashboardTrendData = [
+  { month: 'Jan', claims: 50 },
+  { month: 'Feb', claims: 130 },
+  { month: 'Mar', claims: 225 },
+  { month: 'Apr', claims: 310 },
+  { month: 'May', claims: 230 },
+  { month: 'Jun', claims: 280 },
+  { month: 'Jul', claims: 435 },
+  { month: 'Aug', claims: 390 },
+  { month: 'Sep', claims: 460 },
+  { month: 'Oct', claims: 410 },
+  { month: 'Nov', claims: 480 },
+  { month: 'Dec', claims: 520 },
 ];
 
-// 3. Risk Vector Radar Data
-const radarData = [
-  { subject: 'Income Anomaly', FraudRisk: 95, NormalClaim: 20 },
-  { subject: 'Injury Claim Ratio', FraudRisk: 82, NormalClaim: 35 },
-  { subject: 'Claim Days Open', FraudRisk: 75, NormalClaim: 40 },
-  { subject: 'Liability %', FraudRisk: 68, NormalClaim: 45 },
-  { subject: 'Vehicle Age Risk', FraudRisk: 60, NormalClaim: 30 },
-  { subject: 'Past Claim History', FraudRisk: 85, NormalClaim: 25 },
+// ── 3. Claim Distribution Donut Data (Image 3 Top Right) ────────
+const claimDistributionData = [
+  { name: 'Not Fraud', value: 72.5, color: '#6366f1' },
+  { name: 'Fraud', value: 27.5, color: '#ef4444' },
 ];
 
-const barColors = ['#818cf8', '#a855f7', '#38bdf8', '#c084fc', '#818cf8', '#34d399', '#f59e0b', '#6366f1', '#a855f7', '#38bdf8'];
+// ── 4. Fraud by Vehicle Category Pie Data (Image 4 Right) ──────
+const vehicleCategoryData = [
+  { name: 'Medium / SUV', value: 42, color: '#6366f1' },
+  { name: 'Compact', value: 34, color: '#3b82f6' },
+  { name: 'Large / Luxury', value: 24, color: '#10b981' },
+];
 
-// Custom Tooltip for Bar Chart
-const CustomBarTooltip = ({ active, payload }) => {
+// ── 5. Sparkline Data (Image 4 Cards) ───────────────────────────
+const totalClaimsSparkline = [
+  { v: 800 }, { v: 920 }, { v: 850 }, { v: 1050 }, { v: 1120 }, { v: 980 }, { v: 1200 }, { v: 1150 }
+];
+const fraudClaimsSparkline = [
+  { v: 210 }, { v: 280 }, { v: 240 }, { v: 340 }, { v: 310 }, { v: 260 }, { v: 380 }, { v: 350 }
+];
+const accuracySparkline = [
+  { v: 72 }, { v: 74 }, { v: 75 }, { v: 77 }, { v: 76 }, { v: 78 }, { v: 78.1 }, { v: 78.1 }
+];
+
+// ── 6. Feature Importance Bar Data ──────────────────────────────
+const featureImportanceData = [
+  { name: 'Annual Income', value: 73.15, fill: '#818cf8' },
+  { name: 'Days Open', value: 4.48, fill: '#a855f7' },
+  { name: 'Safety Rating', value: 3.25, fill: '#38bdf8' },
+  { name: 'Injury Claim', value: 3.08, fill: '#c084fc' },
+  { name: 'Driver Age', value: 2.48, fill: '#34d399' },
+  { name: 'Vehicle Age', value: 1.95, fill: '#f59e0b' },
+];
+
+// Custom Tooltip for Dashboard Trend
+const CustomTrendTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
     return (
-      <div className="analytics__tooltip">
-        <div className="analytics__tooltip-title">{data.full}</div>
-        <div className="analytics__tooltip-value">Importance: <strong>{data.importance}%</strong></div>
-        <div className="analytics__tooltip-sub">Category: {data.category}</div>
-      </div>
-    );
-  }
-  return null;
-};
-
-// Custom Tooltip for ROC Curve
-const CustomRocTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="analytics__tooltip">
-        <div className="analytics__tooltip-title">Threshold: {data.threshold}</div>
-        <div className="analytics__tooltip-value" style={{ color: '#818cf8' }}>
-          Accuracy: <strong>{data.accuracy}%</strong>
-        </div>
-        <div className="analytics__tooltip-sub">
-          True Positive Rate: {(data.tpr * 100).toFixed(0)}% | False Positive: {(data.fpr * 100).toFixed(0)}%
-        </div>
+      <div className="dash__tooltip">
+        <div className="dash__tooltip-label">{label}</div>
+        <div className="dash__tooltip-val">Fraud Claims: <strong>{payload[0].value}</strong></div>
       </div>
     );
   }
@@ -83,7 +100,7 @@ const CustomRocTooltip = ({ active, payload }) => {
 };
 
 const ModelAnalytics = () => {
-  const [graphType, setGraphType] = useState('bar');
+  const [activeThemeTab, setActiveThemeTab] = useState('dark');
 
   return (
     <section id="analytics" className="analytics">
@@ -91,146 +108,252 @@ const ModelAnalytics = () => {
         {/* Header */}
         <div className="analytics__header">
           <div className="analytics__badge">
-            <HiSparkles /> Interactive AI Charting
+            <HiSparkles /> AI Fraud Intelligence Center
           </div>
-          <h2 className="analytics__title">Model Performance & Feature Plots</h2>
+          <h2 className="analytics__title">Fraud Prediction Dashboard</h2>
           <p className="analytics__subtitle">
-            Plotted Decision Tree analytics showing Gini feature importance curves, ROC accuracy trade-offs, and risk radar vectors.
+            Comprehensive real-time analytics monitoring claim distributions, seasonal fraud trends, accuracy metrics, and AI feature weights.
           </p>
         </div>
 
-        {/* Graph Switcher Controls */}
-        <div className="analytics__tabs">
-          <button
-            className={`analytics__tab ${graphType === 'bar' ? 'analytics__tab--active' : ''}`}
-            onClick={() => setGraphType('bar')}
-          >
-            <FaChartBar /> Feature Importance Bar Chart
-          </button>
-          <button
-            className={`analytics__tab ${graphType === 'roc' ? 'analytics__tab--active' : ''}`}
-            onClick={() => setGraphType('roc')}
-          >
-            <FaChartArea /> ROC & Accuracy Curve
-          </button>
-          <button
-            className={`analytics__tab ${graphType === 'radar' ? 'analytics__tab--active' : ''}`}
-            onClick={() => setGraphType('radar')}
-          >
-            <FaBezierCurve /> Fraud Risk Radar
-          </button>
-        </div>
-
-        {/* Main Chart Card */}
-        <div className="analytics__card glass">
-          {/* Chart Header */}
-          <div className="analytics__card-header">
-            <div>
-              <h3 className="analytics__card-title">
-                {graphType === 'bar' && 'Decision Tree Feature Weight Distribution'}
-                {graphType === 'roc' && 'Receiver Operating Characteristic (ROC) & Accuracy Curve'}
-                {graphType === 'radar' && 'Multidimensional Fraud Risk Profile Radar'}
-              </h3>
-              <p className="analytics__card-sub">
-                {graphType === 'bar' && 'Plotted X/Y coordinate bar graph of Gini impurity reduction per feature.'}
-                {graphType === 'roc' && 'True Positive Rate vs Threshold plotting 78.1% peak accuracy cutoff.'}
-                {graphType === 'radar' && 'Polar radar comparison of Fraudulent Claims vs Legitimate Claims.'}
-              </p>
+        {/* ── ROW 1: 4 Top Stat Cards with Sparklines (Image 4 Top Row) ── */}
+        <div className="dash__stats-grid">
+          {/* Card 1: Total Claims */}
+          <div className="dash__stat-card glass">
+            <div className="dash__stat-top">
+              <div className="dash__stat-icon dash__stat-icon--blue">
+                <FaShieldAlt />
+              </div>
+              <div className="dash__stat-title">Claims Overview</div>
             </div>
-            <div className="analytics__pill">
-              <FaLayerGroup /> Live Plotted Recharts
-            </div>
-          </div>
-
-          {/* Plotted Graph Container */}
-          <div className="analytics__chart-wrapper">
-            {/* 1. Bar Chart Plot */}
-            {graphType === 'bar' && (
-              <ResponsiveContainer width="100%" height={380}>
-                <BarChart data={featureData} margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" vertical={false} />
-                  <XAxis
-                    dataKey="name"
-                    stroke="#94a3b8"
-                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
-                    angle={-25}
-                    textAnchor="end"
-                    interval={0}
-                  />
-                  <YAxis
-                    stroke="#94a3b8"
-                    tick={{ fill: '#94a3b8', fontSize: 12 }}
-                    unit="%"
-                    domain={[0, 80]}
-                  />
-                  <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }} />
-                  <Bar dataKey="importance" radius={[6, 6, 0, 0]}>
-                    {featureData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-
-            {/* 2. ROC / Accuracy Curve Plot */}
-            {graphType === 'roc' && (
-              <ResponsiveContainer width="100%" height={380}>
-                <AreaChart data={rocData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
+            <div className="dash__stat-num">11,716</div>
+            <div className="dash__stat-sub">Total Claims Evaluated</div>
+            <div className="dash__sparkline">
+              <ResponsiveContainer width="100%" height={36}>
+                <AreaChart data={totalClaimsSparkline}>
                   <defs>
-                    <linearGradient id="accuracyGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
-                    </linearGradient>
-                    <linearGradient id="tprGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#a855f7" stopOpacity={0.6} />
-                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0} />
+                    <linearGradient id="blueSpark" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" />
-                  <XAxis dataKey="threshold" stroke="#94a3b8" label={{ value: 'Decision Threshold', position: 'insideBottom', offset: -10, fill: '#94a3b8' }} />
-                  <YAxis stroke="#94a3b8" unit="%" domain={[0, 100]} />
-                  <Tooltip content={<CustomRocTooltip />} />
-                  <Area type="monotone" dataKey="accuracy" name="Accuracy (%)" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#accuracyGradient)" />
-                  <Area type="monotone" dataKey="tpr" name="True Positive Rate" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#tprGradient)" />
+                  <Area type="monotone" dataKey="v" stroke="#6366f1" strokeWidth={2} fill="url(#blueSpark)" />
                 </AreaChart>
               </ResponsiveContainer>
-            )}
-
-            {/* 3. Radar Chart Plot */}
-            {graphType === 'radar' && (
-              <ResponsiveContainer width="100%" height={380}>
-                <RadarChart outerRadius={130} data={radarData}>
-                  <PolarGrid stroke="rgba(255, 255, 255, 0.15)" />
-                  <PolarAngleAxis dataKey="subject" stroke="#cbd5e1" tick={{ fill: '#cbd5e1', fontSize: 12, fontWeight: 600 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#94a3b8" />
-                  <Radar name="Fraudulent Claim Profile" dataKey="FraudRisk" stroke="#ef4444" fill="#ef4444" fillOpacity={0.5} />
-                  <Radar name="Legitimate Claim Profile" dataKey="NormalClaim" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
-                  <Legend wrapperStyle={{ paddingTop: 10 }} />
-                  <Tooltip />
-                </RadarChart>
-              </ResponsiveContainer>
-            )}
+            </div>
           </div>
 
-          {/* Model Summary Footer */}
-          <div className="analytics__footer-stats">
-            <div className="analytics__stat-box">
-              <span className="analytics__stat-num">78.1%</span>
-              <span className="analytics__stat-lbl">Model Accuracy</span>
+          {/* Card 2: Fraudulent Claims */}
+          <div className="dash__stat-card glass">
+            <div className="dash__stat-top">
+              <div className="dash__stat-icon dash__stat-icon--red">
+                <FaExclamationTriangle />
+              </div>
+              <div className="dash__stat-title">Fraudulent Claims</div>
             </div>
-            <div className="analytics__stat-box">
-              <span className="analytics__stat-num">73.15%</span>
-              <span className="analytics__stat-lbl">Income Feature Weight</span>
+            <div className="dash__stat-num">2,878</div>
+            <div className="dash__stat-sub">Fraud Detected (24.5%)</div>
+            <div className="dash__sparkline">
+              <ResponsiveContainer width="100%" height={36}>
+                <AreaChart data={fraudClaimsSparkline}>
+                  <defs>
+                    <linearGradient id="redSpark" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="v" stroke="#ef4444" strokeWidth={2} fill="url(#redSpark)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
-            <div className="analytics__stat-box">
-              <span className="analytics__stat-num">11,716</span>
-              <span className="analytics__stat-lbl">Trained Claims</span>
+          </div>
+
+          {/* Card 3: Detection Accuracy */}
+          <div className="dash__stat-card glass">
+            <div className="dash__stat-top">
+              <div className="dash__stat-icon dash__stat-icon--green">
+                <FaCheckCircle />
+              </div>
+              <div className="dash__stat-title">Detection Accuracy</div>
             </div>
-            <div className="analytics__stat-box">
-              <span className="analytics__stat-num">&lt; 20ms</span>
-              <span className="analytics__stat-lbl">Plot Traversal Speed</span>
+            <div className="dash__stat-num">78.1%</div>
+            <div className="dash__stat-sub">Model Validation Accuracy</div>
+            <div className="dash__sparkline">
+              <ResponsiveContainer width="100%" height={36}>
+                <AreaChart data={accuracySparkline}>
+                  <defs>
+                    <linearGradient id="greenSpark" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} fill="url(#greenSpark)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
+          </div>
+
+          {/* Card 4: Vehicle Category Pie Chart (Image 4 Right Card) */}
+          <div className="dash__stat-card glass">
+            <div className="dash__stat-top">
+              <div className="dash__stat-icon dash__stat-icon--purple">
+                <FaCar />
+              </div>
+              <div className="dash__stat-title">Fraud by Vehicle Category</div>
+            </div>
+            <div className="dash__pie-container">
+              <ResponsiveContainer width="45%" height={80}>
+                <PieChart>
+                  <Pie data={vehicleCategoryData} innerRadius={18} outerRadius={36} dataKey="value">
+                    {vehicleCategoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="dash__pie-legend">
+                {vehicleCategoryData.map((item, idx) => (
+                  <div key={idx} className="dash__legend-row">
+                    <span className="dash__dot" style={{ background: item.color }}></span>
+                    <span className="dash__legend-name">{item.name}</span>
+                    <span className="dash__legend-val">{item.value}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── ROW 2: Mac Window Dashboard + Right Side Donut/Accuracy (Image 2 & 3) ── */}
+        <div className="dash__main-layout">
+          {/* Left: Mac Window Fraud Prediction Dashboard */}
+          <div className="dash__mac-window">
+            {/* Mac Window Header */}
+            <div className="dash__mac-bar">
+              <div className="dash__mac-dots">
+                <span className="dash__mac-dot dash__mac-dot--red"></span>
+                <span className="dash__mac-dot dash__mac-dot--yellow"></span>
+                <span className="dash__mac-dot dash__mac-dot--green"></span>
+              </div>
+              <div className="dash__mac-title">Fraud Prediction Dashboard</div>
+              <div className="dash__mac-badge"><FaChartLine /> Live Spline Curve</div>
+            </div>
+
+            {/* Mac Window Body: Spline Curve Plot */}
+            <div className="dash__mac-body">
+              <ResponsiveContainer width="100%" height={320}>
+                <AreaChart data={dashboardTrendData} margin={{ top: 25, right: 25, left: -15, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="purpleSpline" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#818cf8" stopOpacity={0.6} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" vertical={false} />
+                  <XAxis dataKey="month" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 12 }} domain={[0, 550]} />
+                  <Tooltip content={<CustomTrendTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="claims"
+                    stroke="#818cf8"
+                    strokeWidth={4}
+                    fillOpacity={1}
+                    fill="url(#purpleSpline)"
+                    activeDot={{ r: 8, fill: '#ffffff', stroke: '#818cf8', strokeWidth: 3 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Right Side: Donut Distribution & Circular Gauge (Image 3 Right Column) */}
+          <div className="dash__right-col">
+            {/* Top Right: Claim Distribution Donut */}
+            <div className="dash__side-card glass">
+              <h3 className="dash__side-title">Claim Distribution</h3>
+              <div className="dash__donut-box">
+                <ResponsiveContainer width={120} height={120}>
+                  <PieChart>
+                    <Pie data={claimDistributionData} innerRadius={35} outerRadius={52} dataKey="value">
+                      {claimDistributionData.map((entry, idx) => (
+                        <Cell key={`cell-${idx}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="dash__side-legend">
+                  <div className="dash__side-item">
+                    <span className="dash__dot" style={{ background: '#6366f1' }}></span>
+                    <div>
+                      <div className="dash__side-name">Not Fraud</div>
+                      <div className="dash__side-num">72.5%</div>
+                    </div>
+                  </div>
+                  <div className="dash__side-item">
+                    <span className="dash__dot" style={{ background: '#ef4444' }}></span>
+                    <div>
+                      <div className="dash__side-name">Fraud</div>
+                      <div className="dash__side-num">27.5%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Right: Model Accuracy Radial Meter */}
+            <div className="dash__side-card glass">
+              <h3 className="dash__side-title">Model Accuracy</h3>
+              <div className="dash__radial-box">
+                <div className="dash__radial-ring">
+                  <span className="dash__radial-val">78.1%</span>
+                </div>
+                <div className="dash__radial-label">High Accuracy Decision Tree</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── ROW 3: Fraud vs Not Fraud Over Time Line Chart (Image 1) ── */}
+        <div className="dash__line-card glass">
+          <div className="dash__line-header">
+            <div>
+              <h3 className="dash__line-title">Fraud vs Not Fraud Over Time</h3>
+              <p className="dash__line-sub">Monthly trend comparison of legitimate insurance claims vs detected fraud claims.</p>
+            </div>
+            <div className="dash__line-legend-top">
+              <span className="dash__legend-badge dash__legend-badge--blue">● Not Fraud</span>
+              <span className="dash__legend-badge dash__legend-badge--red">● Fraud</span>
+            </div>
+          </div>
+
+          <div className="dash__line-chart-wrapper">
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={monthlyComparisonData} margin={{ top: 15, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" vertical={false} />
+                <XAxis dataKey="month" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} />
+                <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 12 }} domain={[0, 800]} />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="NotFraud"
+                  name="Not Fraud"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ r: 5, fill: '#3b82f6', strokeWidth: 2, stroke: '#ffffff' }}
+                  activeDot={{ r: 8 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="Fraud"
+                  name="Fraud"
+                  stroke="#ef4444"
+                  strokeWidth={3}
+                  dot={{ r: 5, fill: '#ef4444', strokeWidth: 2, stroke: '#ffffff' }}
+                  activeDot={{ r: 8 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
