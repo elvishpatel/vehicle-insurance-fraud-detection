@@ -37,10 +37,8 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
   };
 
   const navLinks = [
-    { name: 'Analytics', id: 'analytics' },
     { name: 'Features', id: 'features' },
     { name: 'How It Works', id: 'how-it-works' },
-    { name: 'Predict', id: 'predict' },
   ];
 
   return (
