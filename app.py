@@ -1,239 +1,219 @@
 """
-FraudShield — Flask Backend API
-Loads the trained Decision Tree model and serves fraud predictions.
+FraudShield - Flask Backend API
+================================
+Serves vehicle-insurance fraud predictions from the trained LightGBM model.
 
-AUTOMATIC SCALING ENABLED:
-The ML model expects 50 features normalized between 0.0 and 1.0.
-The frontend sends natural human inputs (e.g. Age: 35, Income: 60000).
-This backend automatically scales human inputs into 0.0 - 1.0 before running prediction!
+MODEL
+-----
+Trained on the real-world "Angoss Knowledge Seeker" automobile insurance claims
+dataset (15,420 claims, 5.99% fraudulent) - see train_fraud_model.py.
+
+The saved object is a complete scikit-learn Pipeline, so it performs its own
+feature encoding (ordered fields -> ordinal codes, nominal fields -> one-hot)
+internally. The API therefore accepts raw, human-readable claim values exactly
+as the frontend form produces them - there is no manual scaling step.
+
+Default operating threshold comes from the saved bundle and was chosen on
+out-of-fold data to keep accuracy above 90%.
 """
 
+import json
 import os
 import warnings
+
 import joblib
-import numpy as np
-from flask import Flask, request, jsonify
+import pandas as pd
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-# ── Suppress version mismatch warning ────────────────────────
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# ── Initialize Flask app ─────────────────────────────────────
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React frontend
+CORS(app)
 
-# ── Load the trained model ───────────────────────────────────
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'vehicle_insurance_fraud_detection_model.pkl')
-model = joblib.load(MODEL_PATH)
-print(f"[OK] Model loaded successfully: {type(model).__name__}")
-print(f"   Features expected: {model.n_features_in_}")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "fraud_model.pkl")
+METRICS_PATH = os.path.join(BASE_DIR, "fraud_model_metrics.json")
+FRONTEND_DIST = os.path.join(BASE_DIR, "frontend", "dist")
 
-# ── The exact feature order the model was trained on ─────────
-FEATURE_NAMES = list(model.feature_names_in_)
+# ── Load model bundle ────────────────────────────────────────
+bundle = joblib.load(MODEL_PATH)
+model = bundle["model"]
+MODEL_NAME = bundle["model_name"]
+THRESHOLD = float(bundle["threshold"])
+FEATURE_NAMES = list(bundle["features"])
 
-# Categorical mappings: frontend value → list of one-hot column names
-CATEGORICAL_MAPPINGS = {
-    'gender': {
-        'Female': 'gender_F',
-        'Male': 'gender_M',
-    },
-    'marital_status': {
-        'Other': 'marital_status_*',
-        'Single': 'marital_status_0',
-        'Married': 'marital_status_1',
-    },
-    'property_status': {
-        'Own': 'property_status_Own',
-        'Rent': 'property_status_Rent',
-    },
-    'claim_day_of_week': {
-        'Unknown': 'claim_day_of_week_*',
-        'Friday': 'claim_day_of_week_Friday',
-        'Monday': 'claim_day_of_week_Monday',
-        'Saturday': 'claim_day_of_week_Saturday',
-        'Sunday': 'claim_day_of_week_Sunday',
-        'Thursday': 'claim_day_of_week_Thursday',
-        'Tuesday': 'claim_day_of_week_Tuesday',
-        'Wednesday': 'claim_day_of_week_Wednesday',
-    },
-    'accident_site': {
-        'Highway': 'accident_site_Highway',
-        'Local': 'accident_site_Local',
-        'Parking Lot': 'accident_site_Parking Lot',
-    },
-    'witness_present': {
-        'Unknown': 'witness_present_*',
-        'No': 'witness_present_0',
-        'Yes': 'witness_present_1',
-    },
-    'channel': {
-        'Broker': 'channel_Broker',
-        'Online': 'channel_Online',
-        'Phone': 'channel_Phone',
-    },
-    'vehicle_category': {
-        'Compact': 'vehicle_category_Compact',
-        'Large': 'vehicle_category_Large',
-        'Medium': 'vehicle_category_Medium',
-    },
-    'vehicle_color': {
-        'Black': 'vehicle_color_black',
-        'Blue': 'vehicle_color_blue',
-        'Gray': 'vehicle_color_gray',
-        'Other': 'vehicle_color_other',
-        'Red': 'vehicle_color_red',
-        'Silver': 'vehicle_color_silver',
-        'White': 'vehicle_color_white',
-    },
+print(f"[OK] Model loaded: {MODEL_NAME}")
+print(f"     Features: {len(FEATURE_NAMES)} | decision threshold: {THRESHOLD:.3f}")
+
+
+# ── Input schema ─────────────────────────────────────────────
+# Mirrors the exact feature order and category spellings of the training data.
+NUMERIC_FIELDS = [
+    "WeekOfMonth", "Age", "WeekOfMonthClaimed", "RepNumber",
+    "Deductible", "DriverRating", "Year",
+]
+
+CATEGORY_FIELDS = {
+    "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "DayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday",
+                  "Friday", "Saturday", "Sunday"],
+    "Make": ["Accura", "BMW", "Chevrolet", "Dodge", "Ferrari", "Ford", "Honda",
+             "Jaguar", "Lexus", "Mazda", "Mecedes", "Mercury", "Nisson", "Pontiac",
+             "Porche", "Saab", "Saturn", "Toyota", "VW"],
+    "AccidentArea": ["Rural", "Urban"],
+    "DayOfWeekClaimed": ["0", "Monday", "Tuesday", "Wednesday", "Thursday",
+                         "Friday", "Saturday", "Sunday"],
+    "MonthClaimed": ["0", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "Sex": ["Female", "Male"],
+    "MaritalStatus": ["Divorced", "Married", "Single", "Widow"],
+    "Fault": ["Policy Holder", "Third Party"],
+    "PolicyType": ["Sedan - All Perils", "Sedan - Collision", "Sedan - Liability",
+                   "Sport - All Perils", "Sport - Collision", "Sport - Liability",
+                   "Utility - All Perils", "Utility - Collision", "Utility - Liability"],
+    "VehicleCategory": ["Sedan", "Sport", "Utility"],
+    "VehiclePrice": ["less than 20000", "20000 to 29000", "30000 to 39000",
+                     "40000 to 59000", "60000 to 69000", "more than 69000"],
+    "Days_Policy_Accident": ["none", "1 to 7", "8 to 15", "15 to 30", "more than 30"],
+    "Days_Policy_Claim": ["none", "8 to 15", "15 to 30", "more than 30"],
+    "PastNumberOfClaims": ["none", "1", "2 to 4", "more than 4"],
+    "AgeOfVehicle": ["new", "2 years", "3 years", "4 years", "5 years",
+                     "6 years", "7 years", "more than 7"],
+    "AgeOfPolicyHolder": ["16 to 17", "18 to 20", "21 to 25", "26 to 30", "31 to 35",
+                          "36 to 40", "41 to 50", "51 to 65", "over 65"],
+    "PoliceReportFiled": ["No", "Yes"],
+    "WitnessPresent": ["No", "Yes"],
+    "AgentType": ["External", "Internal"],
+    "NumberOfSuppliments": ["none", "1 to 2", "3 to 5", "more than 5"],
+    "AddressChange_Claim": ["no change", "under 6 months", "1 year",
+                            "2 to 3 years", "4 to 8 years"],
+    "NumberOfCars": ["1 vehicle", "2 vehicles", "3 to 4", "5 to 8", "more than 8"],
+    "BasePolicy": ["All Perils", "Collision", "Liability"],
 }
 
-def scale_numeric_value(field, val):
-    """
-    Automatically scales natural human input (e.g. Age: 35, Income: $50000)
-    into 0.0 - 1.0 range expected by the ML model.
-    """
-    if val is None or val == '':
-        return 0.0
 
-    # Handle Yes / No or string booleans
-    if isinstance(val, str):
-        val_str = val.strip().lower()
-        if val_str in ['yes', 'true', '1']:
-            return 1.0
-        if val_str in ['no', 'false', '0']:
-            return 0.0
+def validate(payload):
+    """Return (clean_record, errors)."""
+    errors = []
 
-    try:
-        fval = float(val)
-    except (ValueError, TypeError):
-        return 0.0
+    missing = [f for f in FEATURE_NAMES if payload.get(f) in (None, "")]
+    if missing:
+        errors.append("Missing required fields: " + ", ".join(missing))
 
-    # Automatic Min-Max Scaling based on realistic dataset bounds
-    if field == 'age_of_driver':
-        if fval > 1.0:
-            return max(0.0, min(1.0, (fval - 18.0) / (74.0 - 18.0)))
-        return fval
-    elif field == 'safety_rating':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 100.0))
-        return fval
-    elif field == 'annual_income':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 150000.0))
-        return fval
-    elif field in ['high_education', 'address_change', 'police_report']:
-        return 1.0 if fval >= 0.5 else 0.0
-    elif field == 'past_num_of_claims':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 6.0))
-        return fval
-    elif field == 'liab_prct':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 100.0))
-        return fval
-    elif field == 'age_of_vehicle':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 10.0))
-        return fval
-    elif field == 'vehicle_price':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 100000.0))
-        return fval
-    elif field == 'total_claim':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 100000.0))
-        return fval
-    elif field == 'injury_claim':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 50000.0))
-        return fval
-    elif field == 'policy_deductible':
-        if fval > 1.0:
-            return max(0.0, min(1.0, (fval - 500.0) / (2000.0 - 500.0)))
-        return fval
-    elif field == 'annual_premium':
-        if fval > 1.0:
-            return max(0.0, min(1.0, (fval - 500.0) / (3000.0 - 500.0)))
-        return fval
-    elif field == 'days_open':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 365.0))
-        return fval
-    elif field == 'form_defects':
-        if fval > 1.0:
-            return max(0.0, min(1.0, fval / 12.0))
-        return fval
-    
-    return max(0.0, min(1.0, fval))
+    record = {}
+    for field in NUMERIC_FIELDS:
+        raw = payload.get(field)
+        if raw in (None, ""):
+            continue
+        try:
+            record[field] = float(raw)
+        except (TypeError, ValueError):
+            errors.append(f"'{field}' must be a number (got '{raw}').")
+
+    for field, allowed in CATEGORY_FIELDS.items():
+        raw = payload.get(field)
+        if raw in (None, ""):
+            continue
+        value = str(raw)
+        if value not in allowed:
+            errors.append(f"'{field}' must be one of: {', '.join(allowed)}.")
+        else:
+            record[field] = value
+
+    return record, errors
 
 
-def transform_input(data):
-    """
-    Convert raw frontend JSON to a 50-feature numpy array
-    matching the model's expected input format.
-    """
-    features = {name: 0.0 for name in FEATURE_NAMES}
-
-    # 1) Scale numeric & binary features
-    for field in FEATURE_NAMES:
-        if field in data:
-            features[field] = scale_numeric_value(field, data[field])
-
-    # 2) One-hot encode categorical features
-    for cat_field, value_map in CATEGORICAL_MAPPINGS.items():
-        if cat_field in data:
-            selected_value = data[cat_field]
-            if selected_value in value_map:
-                one_hot_col = value_map[selected_value]
-                if one_hot_col in features:
-                    features[one_hot_col] = 1.0
-
-    # 3) Build the feature array in exact column order
-    feature_array = np.array([[features[name] for name in FEATURE_NAMES]])
-    return feature_array
-
-
-# ── API Routes ───────────────────────────────────────────────
-
-@app.route('/predict', methods=['POST'])
+# ── Routes ───────────────────────────────────────────────────
+@app.route("/predict", methods=["POST"])
 def predict():
     try:
-        data = request.get_json()
+        payload = request.get_json(silent=True)
+        if not payload:
+            return jsonify({"message": "No input data provided"}), 400
 
-        if not data:
-            return jsonify({'message': 'No input data provided'}), 400
+        record, errors = validate(payload)
+        if errors:
+            return jsonify({"message": " ".join(errors), "errors": errors}), 400
 
-        # Transform and auto-scale raw input
-        features = transform_input(data)
+        features = pd.DataFrame([[record[f] for f in FEATURE_NAMES]], columns=FEATURE_NAMES)
+        probability = float(model.predict_proba(features)[0, 1])
 
-        # Get prediction (0 = Not Fraud, 1 = Fraud)
-        prediction = model.predict(features)[0]
+        is_fraud = probability >= THRESHOLD
+        if is_fraud:
+            risk = "High"
+        elif probability >= THRESHOLD * 0.6:
+            risk = "Medium"
+        else:
+            risk = "Low"
 
-        # Get probability scores [P(Not Fraud), P(Fraud)]
-        probabilities = model.predict_proba(features)[0]
+        return jsonify({
+            "prediction": "Fraud" if is_fraud else "Not Fraud",
+            "probability": round(probability, 4),
+            "risk_level": risk,
+            "threshold": round(THRESHOLD, 3),
+        }), 200
 
-        result = {
-            'prediction': 'Fraud' if prediction == 1 else 'Not Fraud',
-            'probability': round(float(probabilities[1]), 2)  # P(Fraud)
-        }
-
-        return jsonify(result), 200
-
-    except Exception as e:
-        return jsonify({'message': f'Prediction error: {str(e)}'}), 500
+    except Exception as exc:  # pragma: no cover - defensive
+        return jsonify({"message": f"Prediction error: {exc}"}), 500
 
 
-@app.route('/health', methods=['GET'])
-def health():
+@app.route("/fields", methods=["GET"])
+def fields():
+    """Input schema, so the UI can stay in sync with the model."""
     return jsonify({
-        'status': 'healthy',
-        'model': type(model).__name__,
-        'features': model.n_features_in_
+        "numeric": NUMERIC_FIELDS,
+        "categorical": CATEGORY_FIELDS,
     }), 200
 
 
-if __name__ == '__main__':
-    print("\n>> FraudShield API running on http://localhost:5000")
-    print("   POST /predict  — Submit claim for fraud prediction")
-    print("   GET  /health   — Health check\n")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+@app.route("/model-info", methods=["GET"])
+def model_info():
+    info = {"model": MODEL_NAME, "threshold": round(THRESHOLD, 3),
+            "features": FEATURE_NAMES}
+    if os.path.exists(METRICS_PATH):
+        with open(METRICS_PATH) as fh:
+            metrics = json.load(fh)
+        info["roc_auc"] = metrics.get("roc_auc")
+        info["pr_auc"] = metrics.get("pr_auc")
+        info["operating_points"] = metrics.get("operating_points")
+    return jsonify(info), 200
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({
+        "status": "healthy",
+        "model": MODEL_NAME,
+        "features": len(FEATURE_NAMES),
+        "threshold": round(THRESHOLD, 3),
+    }), 200
+
+
+# ── Static frontend (built React app in frontend/dist) ───────
+# With a built frontend, `python app.py` alone serves the whole product on
+# port 5000; the API routes above always take precedence over this catch-all.
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def frontend(path):
+    if path and os.path.isfile(os.path.join(FRONTEND_DIST, path)):
+        return send_from_directory(FRONTEND_DIST, path)
+    index_path = os.path.join(FRONTEND_DIST, "index.html")
+    if os.path.isfile(index_path):
+        return send_from_directory(FRONTEND_DIST, "index.html")
+    return jsonify({
+        "message": "FraudShield API is running. Build the frontend "
+                   "(npm run build in frontend/) or use the dev server on port 3000.",
+        "endpoints": ["/predict", "/fields", "/model-info", "/health"],
+    }), 200
+
+
+if __name__ == "__main__":
+    print("\n>> FraudShield running on http://localhost:5000")
+    print("   POST /predict     - submit a claim for fraud scoring")
+    print("   GET  /fields      - input schema")
+    print("   GET  /model-info  - model + metrics")
+    print("   GET  /health      - health check")
+    print("   GET  /            - FraudShield web app (frontend/dist)\n")
+    app.run(debug=False, host="0.0.0.0", port=5000)

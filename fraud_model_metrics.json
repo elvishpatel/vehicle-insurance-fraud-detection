@@ -1,0 +1,142 @@
+{
+  "model": "LightGBM",
+  "threshold": 0.56,
+  "roc_auc": 0.8461967313985251,
+  "pr_auc": 0.26553097663736336,
+  "operating_points": {
+    "best_f1": {
+      "threshold": 0.305,
+      "accuracy": 0.8411154345006485,
+      "balanced_accuracy": 0.71053951502382,
+      "precision": 0.20272904483430798,
+      "recall": 0.5621621621621622,
+      "f1": 0.2979942693409742,
+      "specificity": 0.8589168678854777,
+      "confusion_matrix": {
+        "tn": 2490,
+        "fp": 409,
+        "fn": 81,
+        "tp": 104
+      }
+    },
+    "best_balanced_accuracy": {
+      "threshold": 0.065,
+      "accuracy": 0.6653696498054474,
+      "balanced_accuracy": 0.7714030001025517,
+      "precision": 0.14018691588785046,
+      "recall": 0.8918918918918919,
+      "f1": 0.2422907488986784,
+      "specificity": 0.6509141083132115,
+      "confusion_matrix": {
+        "tn": 1887,
+        "fp": 1012,
+        "fn": 20,
+        "tp": 165
+      }
+    },
+    "best_accuracy": {
+      "threshold": 0.915,
+      "accuracy": 0.941958495460441,
+      "balanced_accuracy": 0.5187464456522752,
+      "precision": 0.875,
+      "recall": 0.03783783783783784,
+      "f1": 0.07253886010362694,
+      "specificity": 0.9996550534667127,
+      "confusion_matrix": {
+        "tn": 2898,
+        "fp": 1,
+        "fn": 178,
+        "tp": 7
+      }
+    },
+    "accuracy_ge_90": {
+      "threshold": 0.56,
+      "accuracy": 0.9121271076523995,
+      "balanced_accuracy": 0.6217996886158321,
+      "precision": 0.27835051546391754,
+      "recall": 0.2918918918918919,
+      "f1": 0.2849604221635884,
+      "specificity": 0.9517074853397723,
+      "confusion_matrix": {
+        "tn": 2759,
+        "fp": 140,
+        "fn": 131,
+        "tp": 54
+      }
+    }
+  },
+  "features": [
+    "Month",
+    "WeekOfMonth",
+    "DayOfWeek",
+    "Make",
+    "AccidentArea",
+    "DayOfWeekClaimed",
+    "MonthClaimed",
+    "WeekOfMonthClaimed",
+    "Sex",
+    "MaritalStatus",
+    "Age",
+    "Fault",
+    "PolicyType",
+    "VehicleCategory",
+    "VehiclePrice",
+    "RepNumber",
+    "Deductible",
+    "DriverRating",
+    "Days_Policy_Accident",
+    "Days_Policy_Claim",
+    "PastNumberOfClaims",
+    "AgeOfVehicle",
+    "AgeOfPolicyHolder",
+    "PoliceReportFiled",
+    "WitnessPresent",
+    "AgentType",
+    "NumberOfSuppliments",
+    "AddressChange_Claim",
+    "NumberOfCars",
+    "Year",
+    "BasePolicy"
+  ],
+  "ordinal_cols": [
+    "VehiclePrice",
+    "Days_Policy_Accident",
+    "Days_Policy_Claim",
+    "PastNumberOfClaims",
+    "AgeOfVehicle",
+    "AgeOfPolicyHolder",
+    "NumberOfSuppliments",
+    "AddressChange_Claim",
+    "NumberOfCars"
+  ],
+  "nominal_cols": [
+    "Month",
+    "DayOfWeek",
+    "Make",
+    "AccidentArea",
+    "DayOfWeekClaimed",
+    "MonthClaimed",
+    "Sex",
+    "MaritalStatus",
+    "Fault",
+    "PolicyType",
+    "VehicleCategory",
+    "PoliceReportFiled",
+    "WitnessPresent",
+    "AgentType",
+    "BasePolicy"
+  ],
+  "numeric_cols": [
+    "WeekOfMonth",
+    "Age",
+    "WeekOfMonthClaimed",
+    "RepNumber",
+    "Deductible",
+    "DriverRating",
+    "Year"
+  ],
+  "dropped_cols": [
+    "PolicyNumber"
+  ],
+  "positive_rate": 0.05985732814526589
+}

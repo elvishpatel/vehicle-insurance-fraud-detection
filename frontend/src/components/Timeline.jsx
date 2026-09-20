@@ -16,7 +16,7 @@ const steps = [
   {
     icon: FaCog,
     title: 'ML Model Predicts',
-    description: 'Our trained Decision Tree classifier analyzes the claim patterns and calculates fraud probability.',
+    description: 'Our trained LightGBM model analyzes the claim patterns and calculates fraud probability.',
   },
   {
     icon: FaCheckCircle,

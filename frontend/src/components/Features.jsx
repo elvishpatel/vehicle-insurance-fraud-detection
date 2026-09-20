@@ -10,8 +10,8 @@ const features = [
   },
   { 
     icon: FaTree, 
-    title: 'Decision Tree Classification', 
-    description: 'Transparent decision-making process using trained Decision Tree models for interpretable and reliable predictions.' 
+    title: 'LightGBM Gradient Boosting', 
+    description: 'Transparent decision-making process using tuned gradient-boosted trees for accurate and reliable fraud predictions.' 
   },
   { 
     icon: FaBolt, 
@@ -21,7 +21,7 @@ const features = [
   { 
     icon: FaShieldAlt, 
     title: 'Accurate Fraud Detection', 
-    description: 'Industry-leading accuracy powered by extensive training on real insurance claim data with rigorous validation.' 
+    description: 'Over 91% accuracy powered by training on 15,400+ real insurance claims with rigorous out-of-fold validation.' 
   }
 ];
 

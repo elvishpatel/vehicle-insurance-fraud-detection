@@ -32,7 +32,7 @@ const Hero = () => {
         </h1>
         
         <p className="hero__subtitle">
-          AI-powered fraud prediction system that analyzes insurance claim details using Machine Learning and Decision Tree Classification.
+          AI-powered fraud prediction system that analyzes insurance claim details using Machine Learning and LightGBM Gradient Boosting.
         </p>
         
         <div className="hero__buttons">
@@ -46,7 +46,7 @@ const Hero = () => {
         
         <div className="hero__stats">
           <div className="hero__stat-card hero__stat-card--1">
-            <div className="hero__stat-value gradient-text">78.1%</div>
+            <div className="hero__stat-value gradient-text">91.2%</div>
             <div className="hero__stat-label">Accuracy</div>
           </div>
           <div className="hero__stat-card hero__stat-card--2">
@@ -54,7 +54,7 @@ const Hero = () => {
             <div className="hero__stat-label">Analysis</div>
           </div>
           <div className="hero__stat-card hero__stat-card--3">
-            <div className="hero__stat-value gradient-text">11.7K+</div>
+            <div className="hero__stat-value gradient-text">15.4K+</div>
             <div className="hero__stat-label">Claims Trained</div>
           </div>
         </div>
