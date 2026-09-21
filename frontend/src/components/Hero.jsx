@@ -46,7 +46,7 @@ const Hero = () => {
         
         <div className="hero__stats">
           <div className="hero__stat-card hero__stat-card--1">
-            <div className="hero__stat-value gradient-text">91.2%</div>
+            <div className="hero__stat-value gradient-text">90.8%</div>
             <div className="hero__stat-label">Accuracy</div>
           </div>
           <div className="hero__stat-card hero__stat-card--2">

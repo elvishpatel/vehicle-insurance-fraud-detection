@@ -21,7 +21,7 @@ const features = [
   { 
     icon: FaShieldAlt, 
     title: 'Accurate Fraud Detection', 
-    description: 'Over 91% accuracy powered by training on 15,400+ real insurance claims with rigorous out-of-fold validation.' 
+    description: 'Over 90% accuracy powered by training on 15,400+ real insurance claims with rigorous out-of-fold validation.' 
   }
 ];
 
