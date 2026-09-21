@@ -8,32 +8,46 @@ import {
   CartesianGrid,
   Tooltip
 } from 'recharts';
-import { FaChartLine } from 'react-icons/fa';
+import { FaChartLine, FaDatabase, FaSearchDollar, FaBullseye, FaPercentage } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import './ModelAnalytics.css';
 
-const dashboardTrendData = [
-  { month: 'Jan', claims: 50 },
-  { month: 'Feb', claims: 130 },
-  { month: 'Mar', claims: 225 },
-  { month: 'Apr', claims: 310 },
-  { month: 'May', claims: 230 },
-  { month: 'Jun', claims: 280 },
-  { month: 'Jul', claims: 435 },
-  { month: 'Aug', claims: 390 },
-  { month: 'Sep', claims: 460 },
-  { month: 'Oct', claims: 410 },
-  { month: 'Nov', claims: 480 },
-  { month: 'Dec', claims: 520 },
+// Real monthly claim volumes from the 15,420-claim training dataset
+// (1994-1996 US automobile insurance claims).
+const monthlyData = [
+  { month: 'Jan', legit: 1324, fraud: 87 },
+  { month: 'Feb', legit: 1184, fraud: 82 },
+  { month: 'Mar', legit: 1258, fraud: 102 },
+  { month: 'Apr', legit: 1200, fraud: 80 },
+  { month: 'May', legit: 1273, fraud: 94 },
+  { month: 'Jun', legit: 1241, fraud: 80 },
+  { month: 'Jul', legit: 1197, fraud: 60 },
+  { month: 'Aug', legit: 1043, fraud: 84 },
+  { month: 'Sep', legit: 1164, fraud: 76 },
+  { month: 'Oct', legit: 1235, fraud: 70 },
+  { month: 'Nov', legit: 1155, fraud: 46 },
+  { month: 'Dec', legit: 1223, fraud: 62 },
 ];
 
-// Custom Tooltip for Dashboard Trend
+const stats = [
+  { icon: FaDatabase, value: '15,420', label: 'Real Claims Analyzed' },
+  { icon: FaSearchDollar, value: '923', label: 'Fraud Cases Identified' },
+  { icon: FaBullseye, value: '90.8%', label: 'Prediction Accuracy' },
+  { icon: FaPercentage, value: '0.85', label: 'ROC-AUC Score' },
+];
+
+// Custom Tooltip for the dashboard chart
 const CustomTrendTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="dash__tooltip">
         <div className="dash__tooltip-label">{label}</div>
-        <div className="dash__tooltip-val">Fraud Claims: <strong>{payload[0].value}</strong></div>
+        {payload.map((entry) => (
+          <div key={entry.dataKey} className="dash__tooltip-val">
+            <span className="dash__tooltip-dot" style={{ background: entry.stroke || entry.fill }} />
+            {entry.name}: <strong>{entry.value.toLocaleString()}</strong>
+          </div>
+        ))}
       </div>
     );
   }
@@ -44,44 +58,85 @@ const ModelAnalytics = () => {
   return (
     <section id="analytics" className="analytics">
       <div className="analytics__container">
-        {/* Mac Window Fraud Prediction Chart */}
+        <div className="analytics__header">
+          <div className="analytics__badge">
+            <HiSparkles /> Model Intelligence
+          </div>
+          <h2 className="analytics__title">Fraud Prediction Dashboard</h2>
+          <p className="analytics__subtitle">
+            Every verdict is backed by patterns learned from thousands of historical
+            claims — legitimate volume and confirmed fraud, month by month.
+          </p>
+        </div>
+
+        {/* Key metrics */}
+        <div className="dash__stats">
+          {stats.map((stat) => (
+            <div key={stat.label} className="dash__stat-card">
+              <div className="dash__stat-icon">
+                <stat.icon />
+              </div>
+              <div className="dash__stat-value">{stat.value}</div>
+              <div className="dash__stat-label">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Mac Window Claims Chart */}
         <div className="dash__mac-window">
-          {/* Mac Window Title Bar */}
           <div className="dash__mac-bar">
             <div className="dash__mac-dots">
               <span className="dash__mac-dot dash__mac-dot--red"></span>
               <span className="dash__mac-dot dash__mac-dot--yellow"></span>
               <span className="dash__mac-dot dash__mac-dot--green"></span>
             </div>
-            <div className="dash__mac-title">Fraud Prediction Dashboard</div>
-            <div className="dash__mac-badge"><FaChartLine /> Live Spline Curve</div>
+            <div className="dash__mac-title">Monthly Claims: Legitimate vs Fraud</div>
+            <div className="dash__mac-badge"><FaChartLine /> Training Data</div>
           </div>
 
-          {/* Mac Window Body: Spline Curve Plot */}
           <div className="dash__mac-body">
             <ResponsiveContainer width="100%" height={360}>
-              <AreaChart data={dashboardTrendData} margin={{ top: 25, right: 30, left: 0, bottom: 10 }}>
+              <AreaChart data={monthlyData} margin={{ top: 25, right: 30, left: 0, bottom: 10 }}>
                 <defs>
-                  <linearGradient id="purpleSpline" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#818cf8" stopOpacity={0.6} />
+                  <linearGradient id="legitFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" vertical={false} />
                 <XAxis dataKey="month" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 600 }} />
-                <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 13 }} domain={[0, 550]} label={{ value: 'Claims', angle: -90, position: 'insideLeft', fill: '#94a3b8', offset: 15 }} />
+                <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 13 }} domain={[0, 1400]} label={{ value: 'Claims', angle: -90, position: 'insideLeft', fill: '#94a3b8', offset: 15 }} />
                 <Tooltip content={<CustomTrendTooltip />} />
                 <Area
                   type="monotone"
-                  dataKey="claims"
+                  dataKey="legit"
+                  name="Legitimate"
                   stroke="#818cf8"
-                  strokeWidth={4}
+                  strokeWidth={3}
                   fillOpacity={1}
-                  fill="url(#purpleSpline)"
-                  activeDot={{ r: 8, fill: '#ffffff', stroke: '#818cf8', strokeWidth: 3 }}
+                  fill="url(#legitFill)"
+                  activeDot={{ r: 6, fill: '#ffffff', stroke: '#818cf8', strokeWidth: 3 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="fraud"
+                  name="Fraud"
+                  stroke="#f87171"
+                  strokeWidth={3}
+                  fill="transparent"
+                  activeDot={{ r: 6, fill: '#ffffff', stroke: '#f87171', strokeWidth: 3 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
+
+            <div className="dash__legend">
+              <span className="dash__legend-item">
+                <span className="dash__legend-dot dash__legend-dot--legit"></span> Legitimate claims
+              </span>
+              <span className="dash__legend-item">
+                <span className="dash__legend-dot dash__legend-dot--fraud"></span> Confirmed fraud
+              </span>
+            </div>
           </div>
         </div>
       </div>

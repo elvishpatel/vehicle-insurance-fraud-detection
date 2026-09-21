@@ -1,17 +1,17 @@
 import React, { useEffect, useRef } from 'react';
-import { FaBrain, FaTree, FaBolt, FaShieldAlt } from 'react-icons/fa';
+import { FaBrain, FaLayerGroup, FaBolt, FaShieldAlt, FaDatabase, FaUserSecret } from 'react-icons/fa';
 import './Features.css';
 
 const features = [
   { 
     icon: FaBrain, 
-    title: 'Machine Learning Prediction', 
-    description: 'Advanced ML algorithms analyze claim patterns to identify potential fraud with high accuracy and confidence scores.' 
+    title: 'AI-Powered Prediction', 
+    description: 'Advanced machine learning algorithms analyze claim patterns to identify potential fraud with high accuracy and confidence scores.' 
   },
   { 
-    icon: FaTree, 
-    title: 'LightGBM Gradient Boosting', 
-    description: 'Transparent decision-making process using tuned gradient-boosted trees for accurate and reliable fraud predictions.' 
+    icon: FaLayerGroup, 
+    title: 'Clear Risk Bands', 
+    description: 'Every claim receives a High, Medium, or Low risk verdict with an exact fraud probability — so investigators know where to focus first.' 
   },
   { 
     icon: FaBolt, 
@@ -19,9 +19,19 @@ const features = [
     description: 'Get instant predictions in under 2 seconds. Our optimized pipeline processes claims data rapidly for immediate results.' 
   },
   { 
-    icon: FaShieldAlt, 
-    title: 'Accurate Fraud Detection', 
+    icon: FaDatabase, 
+    title: 'Trained on Real Claims', 
     description: 'Over 90% accuracy powered by training on 15,400+ real insurance claims with rigorous out-of-fold validation.' 
+  },
+  { 
+    icon: FaUserSecret, 
+    title: 'Pattern Recognition', 
+    description: 'Detects subtle fraud signals humans miss — from fault and policy details to claim timing and address history.' 
+  },
+  { 
+    icon: FaShieldAlt, 
+    title: 'Privacy-First Design', 
+    description: 'Claims are scored in memory and never stored. No personal data is retained after your analysis is complete.' 
   }
 ];
 

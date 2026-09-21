@@ -6,6 +6,7 @@ import Features from './components/Features';
 import Timeline from './components/Timeline';
 import PredictionForm from './components/PredictionForm';
 import ResultCard from './components/ResultCard';
+import Faq from './components/Faq';
 import Footer from './components/Footer';
 import { FaArrowUp } from 'react-icons/fa';
 import './App.css';
@@ -63,6 +64,7 @@ function App() {
       <Timeline />
       <PredictionForm onResult={handleResult} />
       <ResultCard result={result} />
+      <Faq />
       <Footer />
 
       {/* Back to top button */}
