@@ -201,6 +201,25 @@
   font-weight: 600;
 }
 
+.prediction__waking {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  color: #fbbf24;
+  text-align: center;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.prediction__waking .spinner {
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
   .prediction__section-grid {
     grid-template-columns: 1fr;

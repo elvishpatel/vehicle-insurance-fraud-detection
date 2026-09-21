@@ -60,6 +60,7 @@ const PredictionForm = ({ onResult }) => {
   });
   
   const [loading, setLoading] = useState(false);
+  const [wakingUp, setWakingUp] = useState(false);
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
@@ -104,6 +105,7 @@ const PredictionForm = ({ onResult }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setWakingUp(false);
 
     const isEmpty = Object.values(formData).some((value) => value === '');
     if (isEmpty) {
@@ -121,7 +123,7 @@ const PredictionForm = ({ onResult }) => {
 
     setLoading(true);
     try {
-      const response = await predictFraud(payload);
+      const response = await predictFraud(payload, () => setWakingUp(true));
       onResult(response.data);
     } catch (err) {
       setError(
@@ -129,6 +131,7 @@ const PredictionForm = ({ onResult }) => {
       );
     } finally {
       setLoading(false);
+      setWakingUp(false);
     }
   };
 
@@ -174,6 +177,17 @@ const PredictionForm = ({ onResult }) => {
             </div>
           </div>
 
+          {wakingUp && (
+            <div className="prediction__waking">
+              <FaSpinner className="spinner" />
+              <span>
+                Our server is waking up from sleep (this happens on free hosting after
+                inactivity). It can take up to a minute — your claim is being processed,
+                please keep this page open.
+              </span>
+            </div>
+          )}
+
           {error && (
             <div className="prediction__error">
               {error}
@@ -188,7 +202,8 @@ const PredictionForm = ({ onResult }) => {
             >
               {loading ? (
                 <>
-                  <FaSpinner className="spinner" /> Analyzing Claim...
+                  <FaSpinner className="spinner" />
+                  {wakingUp ? 'Waking Up Server...' : 'Analyzing Claim...'}
                 </>
               ) : (
                 <>
