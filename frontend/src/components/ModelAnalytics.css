@@ -224,6 +224,25 @@
   display: inline-block;
 }
 
+@media (max-width: 1100px) {
+  .dash__stats {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  
+  .dash__stat-card {
+    padding: 18px 14px;
+  }
+  
+  .dash__stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .dash__stat-label {
+    font-size: 0.75rem;
+  }
+}
+
 @media (max-width: 900px) {
   .dash__stats {
     grid-template-columns: repeat(2, 1fr);

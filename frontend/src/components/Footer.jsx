@@ -25,7 +25,7 @@ const Footer = () => {
             <h4 className="footer__column-title">Tech Stack</h4>
             <ul className="footer__list">
               <li className="footer__list-item">
-                <span className="footer__list-link"><SiScikitlearn /> LightGBM ML Algorithm</span>
+                <span className="footer__list-link"><SiScikitlearn /> ExtraTrees Sampling</span>
               </li>
               <li className="footer__list-item">
                 <span className="footer__list-link"><SiFlask /> Flask API</span>

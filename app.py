@@ -1,24 +1,22 @@
 """
 FraudShield - Flask Backend API
 ================================
-Serves vehicle-insurance fraud predictions from the trained LightGBM model.
+Serves vehicle-insurance fraud predictions from the trained ExtraTrees model
+bundle (fraud_pipeline 1.0.0).
 
 MODEL
 -----
-Trained on the real-world "Angoss Knowledge Seeker" automobile insurance claims
-dataset (15,420 claims, 5.99% fraudulent) - see train_fraud_model.py.
+Trained with an end-to-end leakage-free pipeline on the vehicle insurance claims
+dataset (1,000 claims, 24.7% fraudulent).
 
-The saved object is a complete scikit-learn Pipeline, so it performs its own
-feature encoding (ordered fields -> ordinal codes, nominal fields -> one-hot)
-internally. The API therefore accepts raw, human-readable claim values exactly
-as the frontend form produces them - there is no manual scaling step.
-
-Default operating threshold comes from the saved bundle and was chosen on
-out-of-fold data to keep accuracy above 90%.
+The saved object is a complete composite pipeline (`ResamplingPipeline`),
+performing feature engineering, imputation, and one-hot encoding internally.
+The API accepts raw, human-readable claim values as submitted by the frontend.
 """
 
 import json
 import os
+import sys
 import warnings
 
 import joblib
@@ -28,189 +26,202 @@ from flask_cors import CORS
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 app = Flask(__name__)
 CORS(app)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "fraud_model.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "vehicle_insurance_fraud_model_final.pkl")
 METRICS_PATH = os.path.join(BASE_DIR, "fraud_model_metrics.json")
 FRONTEND_DIST = os.path.join(BASE_DIR, "frontend", "dist")
 
-# ── Load model bundle ────────────────────────────────────────
+# ?? Load model bundle ????????????????????????????????????????
 bundle = joblib.load(MODEL_PATH)
-model = bundle["model"]
-MODEL_NAME = bundle["model_name"]
-THRESHOLD = float(bundle["threshold"])
-FEATURE_NAMES = list(bundle["features"])
+pipeline = bundle["pipeline"]
+MODEL_NAME = "ExtraTrees Sampling"  # Override with display name
+THRESHOLD = float(bundle.get("threshold", 0.50))
+RAW_FEATURE_NAMES = list(bundle.get("feature_names", []))
 
 print(f"[OK] Model loaded: {MODEL_NAME}")
-print(f"     Features: {len(FEATURE_NAMES)} | decision threshold: {THRESHOLD:.3f}")
+print(f"     Raw features expected: {len(RAW_FEATURE_NAMES)} | decision threshold: {THRESHOLD:.3f}")
 
+# ?? Baseline defaults for unsubmitted fields ?????????????????
+DEFAULT_CLAIM = {
+    "months_as_customer": 180,
+    "age": 38,
+    "policy_number": 999999,
+    "policy_bind_date": "2014-01-01",
+    "policy_state": "OH",
+    "policy_csl": "250/500",
+    "policy_deductable": 1000,
+    "policy_annual_premium": 1250.0,
+    "umbrella_limit": 0,
+    "insured_zip": 450000,
+    "insured_sex": "MALE",
+    "insured_education_level": "College",
+    "insured_occupation": "prof-specialty",
+    "insured_hobbies": "reading",
+    "insured_relationship": "husband",
+    "capital-gains": 0,
+    "capital-loss": 0,
+    "incident_date": "2015-02-01",
+    "incident_type": "Multi-vehicle Collision",
+    "collision_type": "Front Collision",
+    "incident_severity": "Minor Damage",
+    "authorities_contacted": "Police",
+    "incident_state": "OH",
+    "incident_city": "Columbus",
+    "incident_location": "Main Street",
+    "incident_hour_of_the_day": 12,
+    "number_of_vehicles_involved": 2,
+    "property_damage": "NO",
+    "bodily_injuries": 0,
+    "witnesses": 1,
+    "police_report_available": "YES",
+    "total_claim_amount": 45000,
+    "injury_claim": 5000,
+    "property_claim": 5000,
+    "vehicle_claim": 35000,
+    "auto_make": "Toyota",
+    "auto_model": "Camry",
+    "auto_year": 2010,
+    "_c39": None,
+}
 
-# ── Input schema ─────────────────────────────────────────────
-# Mirrors the exact feature order and category spellings of the training data.
 NUMERIC_FIELDS = [
-    "WeekOfMonth", "Age", "WeekOfMonthClaimed", "RepNumber",
-    "Deductible", "DriverRating", "Year",
+    "months_as_customer", "age", "policy_deductable", "policy_annual_premium",
+    "umbrella_limit", "capital-gains", "capital-loss", "incident_hour_of_the_day",
+    "number_of_vehicles_involved", "bodily_injuries", "witnesses",
+    "total_claim_amount", "injury_claim", "property_claim", "vehicle_claim",
+    "auto_year",
 ]
 
-CATEGORY_FIELDS = {
-    "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "DayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday",
-                  "Friday", "Saturday", "Sunday"],
-    "Make": ["Accura", "BMW", "Chevrolet", "Dodge", "Ferrari", "Ford", "Honda",
-             "Jaguar", "Lexus", "Mazda", "Mecedes", "Mercury", "Nisson", "Pontiac",
-             "Porche", "Saab", "Saturn", "Toyota", "VW"],
-    "AccidentArea": ["Rural", "Urban"],
-    "DayOfWeekClaimed": ["0", "Monday", "Tuesday", "Wednesday", "Thursday",
-                         "Friday", "Saturday", "Sunday"],
-    "MonthClaimed": ["0", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "Sex": ["Female", "Male"],
-    "MaritalStatus": ["Divorced", "Married", "Single", "Widow"],
-    "Fault": ["Policy Holder", "Third Party"],
-    "PolicyType": ["Sedan - All Perils", "Sedan - Collision", "Sedan - Liability",
-                   "Sport - All Perils", "Sport - Collision", "Sport - Liability",
-                   "Utility - All Perils", "Utility - Collision", "Utility - Liability"],
-    "VehicleCategory": ["Sedan", "Sport", "Utility"],
-    "VehiclePrice": ["less than 20000", "20000 to 29000", "30000 to 39000",
-                     "40000 to 59000", "60000 to 69000", "more than 69000"],
-    "Days_Policy_Accident": ["none", "1 to 7", "8 to 15", "15 to 30", "more than 30"],
-    "Days_Policy_Claim": ["none", "8 to 15", "15 to 30", "more than 30"],
-    "PastNumberOfClaims": ["none", "1", "2 to 4", "more than 4"],
-    "AgeOfVehicle": ["new", "2 years", "3 years", "4 years", "5 years",
-                     "6 years", "7 years", "more than 7"],
-    "AgeOfPolicyHolder": ["16 to 17", "18 to 20", "21 to 25", "26 to 30", "31 to 35",
-                          "36 to 40", "41 to 50", "51 to 65", "over 65"],
-    "PoliceReportFiled": ["No", "Yes"],
-    "WitnessPresent": ["No", "Yes"],
-    "AgentType": ["External", "Internal"],
-    "NumberOfSuppliments": ["none", "1 to 2", "3 to 5", "more than 5"],
-    "AddressChange_Claim": ["no change", "under 6 months", "1 year",
-                            "2 to 3 years", "4 to 8 years"],
-    "NumberOfCars": ["1 vehicle", "2 vehicles", "3 to 4", "5 to 8", "more than 8"],
-    "BasePolicy": ["All Perils", "Collision", "Liability"],
-}
-
-# The form only asks for the 15 fields that carry the predictive signal
-# (permutation importance on the test set). Everything else is auto-filled
-# with the training-set mode/median - measured cost of this simplification:
-# accuracy 91.2% -> 90.8%, ROC-AUC actually improves 0.846 -> 0.856.
-REQUIRED_FIELDS = [
-    "Month", "WeekOfMonth", "Age", "RepNumber", "Year", "BasePolicy", "PolicyType",
-    "VehiclePrice", "AgeOfVehicle", "Deductible", "MonthClaimed", "DayOfWeekClaimed",
-    "PastNumberOfClaims", "Fault", "AddressChange_Claim",
-]
-
-DEFAULTS = {
-    "Sex": "Male",
-    "MaritalStatus": "Married",
-    "DayOfWeek": "Monday",
-    "Make": "Pontiac",
-    "AccidentArea": "Urban",
-    "WeekOfMonthClaimed": 3.0,
-    "Days_Policy_Accident": "more than 30",
-    "Days_Policy_Claim": "more than 30",
-    "VehicleCategory": "Sedan",
-    "AgeOfPolicyHolder": "31 to 35",
-    "PoliceReportFiled": "No",
-    "WitnessPresent": "No",
-    "AgentType": "External",
-    "NumberOfSuppliments": "none",
-    "NumberOfCars": "1 vehicle",
-    "DriverRating": 2.0,
+CATEGORY_OPTIONS = {
+    "incident_severity": ["Major Damage", "Minor Damage", "Total Loss", "Trivial Damage"],
+    "incident_type": ["Single Vehicle Collision", "Multi-vehicle Collision", "Vehicle Theft", "Parked Car"],
+    "collision_type": ["Front Collision", "Rear Collision", "Side Collision", "Unknown"],
+    "authorities_contacted": ["Police", "Fire", "Ambulance", "Other", "None"],
+    "police_report_available": ["YES", "NO", "Unknown"],
+    "property_damage": ["YES", "NO", "Unknown"],
+    "incident_state": ["OH", "NY", "SC", "VA", "WV", "NC", "PA"],
+    "policy_state": ["OH", "IL", "IN"],
+    "policy_csl": ["100/300", "250/500", "500/1000"],
+    "insured_sex": ["MALE", "FEMALE"],
+    "insured_education_level": ["High School", "College", "Associate", "Masters", "JD", "MD", "PhD"],
+    "insured_occupation": [
+        "craft-repair", "prof-specialty", "exec-managerial", "sales", "tech-support",
+        "protective-serv", "transport-moving", "handlers-cleaners", "machine-op-inspct",
+        "adm-clerical", "farming-fishing", "priv-house-serv", "armed-forces", "other-service",
+    ],
+    "insured_hobbies": [
+        "chess", "cross-fit", "golf", "reading", "yachting", "polo", "sleeping", "movies",
+        "hiking", "camping", "basketball", "video-games", "dancing", "board-games", "kayaking",
+        "paintball", "bungie-jumping", "skydiving", "exercise",
+    ],
+    "insured_relationship": ["husband", "wife", "own-child", "unmarried", "other-relative", "not-in-family"],
+    "auto_make": [
+        "Audi", "BMW", "Chevrolet", "Dodge", "Ford", "Honda", "Jeep", "Mercedes", "Nissan",
+        "Saab", "Subaru", "Toyota", "Volkswagen", "Accura",
+    ],
 }
 
 
-def validate(payload):
-    """Return (clean_record, errors). Unprovided optional fields fall back to
-    training-data defaults; required fields must be present and valid."""
-    errors = []
+def sanitize_payload(payload: dict) -> pd.DataFrame:
+    record = dict(DEFAULT_CLAIM)
 
-    missing = [f for f in REQUIRED_FIELDS if payload.get(f) in (None, "")]
-    if missing:
-        errors.append("Missing required fields: " + ", ".join(missing))
-
-    record = dict(DEFAULTS)
-
-    for field in NUMERIC_FIELDS:
-        raw = payload.get(field)
-        if raw in (None, ""):
+    for k, v in payload.items():
+        if v is None or v == "":
             continue
-        try:
-            record[field] = float(raw)
-        except (TypeError, ValueError):
-            errors.append(f"'{field}' must be a number (got '{raw}').")
-
-    for field, allowed in CATEGORY_FIELDS.items():
-        raw = payload.get(field)
-        if raw in (None, ""):
-            continue
-        value = str(raw)
-        if value not in allowed:
-            errors.append(f"'{field}' must be one of: {', '.join(allowed)}.")
+        if k in NUMERIC_FIELDS:
+            try:
+                record[k] = float(v)
+            except (ValueError, TypeError):
+                pass
         else:
-            record[field] = value
+            record[k] = str(v)
 
-    return record, errors
+    total = float(record.get("total_claim_amount", 0) or 0)
+    veh = float(record.get("vehicle_claim", 0) or 0)
+    inj = float(record.get("injury_claim", 0) or 0)
+    prop = float(record.get("property_claim", 0) or 0)
+    if total > 0 and (veh + inj + prop == 0):
+        record["vehicle_claim"] = round(total * 0.70)
+        record["property_claim"] = round(total * 0.15)
+        record["injury_claim"] = round(total * 0.15)
+
+    return pd.DataFrame([record])
 
 
-# ── Routes ───────────────────────────────────────────────────
+# ?? Routes ???????????????????????????????????????????????????
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
         payload = request.get_json(silent=True)
         if not payload:
-            return jsonify({"message": "No input data provided"}), 400
+            return jsonify({"message": "No claim data provided."}), 400
 
-        record, errors = validate(payload)
-        if errors:
-            return jsonify({"message": " ".join(errors), "errors": errors}), 400
+        df = sanitize_payload(payload)
+        proba_matrix = pipeline.predict_proba(df)
+        fraud_prob = float(proba_matrix[0, 1])
 
-        features = pd.DataFrame([[record[f] for f in FEATURE_NAMES]], columns=FEATURE_NAMES)
-        probability = float(model.predict_proba(features)[0, 1])
-
-        is_fraud = probability >= THRESHOLD
-        if is_fraud:
+        is_fraud = fraud_prob >= THRESHOLD
+        if fraud_prob >= THRESHOLD:
             risk = "High"
-        elif probability >= THRESHOLD * 0.6:
+        elif fraud_prob >= THRESHOLD * 0.6:
             risk = "Medium"
         else:
             risk = "Low"
 
         return jsonify({
             "prediction": "Fraud" if is_fraud else "Not Fraud",
-            "probability": round(probability, 4),
+            "probability": round(fraud_prob, 4),
             "risk_level": risk,
             "threshold": round(THRESHOLD, 3),
+            "model": MODEL_NAME,
         }), 200
 
-    except Exception as exc:  # pragma: no cover - defensive
+    except Exception as exc:
         return jsonify({"message": f"Prediction error: {exc}"}), 500
 
 
 @app.route("/fields", methods=["GET"])
 def fields():
-    """Input schema, so the UI can stay in sync with the model."""
     return jsonify({
         "numeric": NUMERIC_FIELDS,
-        "categorical": CATEGORY_FIELDS,
-        "required": REQUIRED_FIELDS,
-        "auto_filled": sorted(DEFAULTS),
+        "categories": CATEGORY_OPTIONS,
+        "defaults": DEFAULT_CLAIM,
     }), 200
 
 
 @app.route("/model-info", methods=["GET"])
 def model_info():
-    info = {"model": MODEL_NAME, "threshold": round(THRESHOLD, 3),
-            "features": FEATURE_NAMES}
+    info = {
+        "model": MODEL_NAME,
+        "threshold": round(THRESHOLD, 3),
+        "raw_features": RAW_FEATURE_NAMES,
+        "encoded_features": getattr(pipeline, "n_features_in_", len(RAW_FEATURE_NAMES)),
+    }
     if os.path.exists(METRICS_PATH):
-        with open(METRICS_PATH) as fh:
-            metrics = json.load(fh)
-        info["roc_auc"] = metrics.get("roc_auc")
-        info["pr_auc"] = metrics.get("pr_auc")
-        info["operating_points"] = metrics.get("operating_points")
+        try:
+            with open(METRICS_PATH, "r", encoding="utf-8") as fh:
+                metrics = json.load(fh)
+            test_m = metrics.get("test_metrics", {})
+            info["accuracy"] = test_m.get("Accuracy")
+            info["roc_auc"] = test_m.get("ROC_AUC")
+            info["pr_auc"] = test_m.get("PR_AUC")
+            info["recall"] = test_m.get("Fraud_Recall")
+            info["precision"] = test_m.get("Fraud_Precision")
+            info["f1"] = test_m.get("Fraud_F1")
+            info["confusion_matrix"] = {
+                "TN": test_m.get("TN"),
+                "FP": test_m.get("FP"),
+                "FN": test_m.get("FN"),
+                "TP": test_m.get("TP"),
+            }
+        except Exception:
+            pass
     return jsonify(info), 200
 
 
@@ -219,14 +230,11 @@ def health():
     return jsonify({
         "status": "healthy",
         "model": MODEL_NAME,
-        "features": len(FEATURE_NAMES),
         "threshold": round(THRESHOLD, 3),
     }), 200
 
 
-# ── Static frontend (built React app in frontend/dist) ───────
-# With a built frontend, `python app.py` alone serves the whole product on
-# port 5000; the API routes above always take precedence over this catch-all.
+# ?? Static frontend ???????????????????????????????????????????
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def frontend(path):
@@ -236,17 +244,16 @@ def frontend(path):
     if os.path.isfile(index_path):
         return send_from_directory(FRONTEND_DIST, "index.html")
     return jsonify({
-        "message": "FraudShield API is running. Build the frontend "
-                   "(npm run build in frontend/) or use the dev server on port 3000.",
+        "message": "FraudShield API is running.",
         "endpoints": ["/predict", "/fields", "/model-info", "/health"],
     }), 200
 
 
 if __name__ == "__main__":
-    print("\n>> FraudShield running on http://localhost:5000")
+    print(f">> FraudShield API running on http://localhost:5000 ({MODEL_NAME})")
     print("   POST /predict     - submit a claim for fraud scoring")
     print("   GET  /fields      - input schema")
     print("   GET  /model-info  - model + metrics")
     print("   GET  /health      - health check")
-    print("   GET  /            - FraudShield web app (frontend/dist)\n")
+    print("   GET  /            - FraudShield web app (frontend/dist)")
     app.run(debug=False, host="0.0.0.0", port=5000)

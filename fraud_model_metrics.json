@@ -1,142 +1,106 @@
 {
-  "model": "LightGBM",
-  "threshold": 0.56,
-  "roc_auc": 0.8461967313985251,
-  "pr_auc": 0.26553097663736336,
-  "operating_points": {
-    "best_f1": {
-      "threshold": 0.305,
-      "accuracy": 0.8411154345006485,
-      "balanced_accuracy": 0.71053951502382,
-      "precision": 0.20272904483430798,
-      "recall": 0.5621621621621622,
-      "f1": 0.2979942693409742,
-      "specificity": 0.8589168678854777,
-      "confusion_matrix": {
-        "tn": 2490,
-        "fp": 409,
-        "fn": 81,
-        "tp": 104
-      }
+  "model": "ExtraTrees",
+  "sampling_method": "none",
+  "threshold": 0.5,
+  "threshold_rule": "max fraud F1 on out-of-fold training predictions (tolerance +/-0.005), ties -> highest fraud precision",
+  "validation_at_chosen_threshold": {
+    "Threshold": 0.5,
+    "Fraud_Precision": 0.6761,
+    "Fraud_Recall": 0.8434,
+    "Fraud_F1": 0.7506,
+    "Accuracy": 0.8612,
+    "Balanced_Accuracy": 0.8553,
+    "MCC": 0.6638,
+    "TP": 167.0,
+    "FP": 80.0,
+    "FN": 31.0,
+    "TN": 522.0
+  },
+  "cross_validated_training_metrics": {
+    "Accuracy": 0.8613,
+    "Precision": 0.6791,
+    "Recall": 0.8437,
+    "F1": 0.7508,
+    "ROC_AUC": 0.8836,
+    "PR_AUC": 0.7259,
+    "Balanced_Accuracy": 0.8554,
+    "MCC": 0.6655,
+    "PR_AUC_Std": 0.0359
+  },
+  "test_metrics": {
+    "Threshold": 0.5,
+    "Accuracy": 0.825,
+    "Precision": 0.625,
+    "Recall": 0.7142857142857143,
+    "F1": 0.6666666666666666,
+    "ROC_AUC": 0.8417353696445465,
+    "PR_AUC": 0.6123604503863735,
+    "Balanced_Accuracy": 0.7876064333017976,
+    "MCC": 0.5509850891677839,
+    "Fraud_Precision": 0.625,
+    "Fraud_Recall": 0.7142857142857143,
+    "Fraud_F1": 0.6666666666666666,
+    "TN": 130,
+    "FP": 21,
+    "FN": 14,
+    "TP": 35,
+    "N": 200,
+    "Fraud_Support": 49
+  },
+  "test_metrics_at_0.5": {
+    "Threshold": 0.5,
+    "Accuracy": 0.825,
+    "Precision": 0.625,
+    "Recall": 0.7142857142857143,
+    "F1": 0.6666666666666666,
+    "ROC_AUC": 0.8417353696445465,
+    "PR_AUC": 0.6123604503863735,
+    "Balanced_Accuracy": 0.7876064333017976,
+    "MCC": 0.5509850891677839,
+    "Fraud_Precision": 0.625,
+    "Fraud_Recall": 0.7142857142857143,
+    "Fraud_F1": 0.6666666666666666,
+    "TN": 130,
+    "FP": 21,
+    "FN": 14,
+    "TP": 35,
+    "N": 200,
+    "Fraud_Support": 49
+  },
+  "classification_report": {
+    "NOT FRAUD": {
+      "precision": 0.9027777777777778,
+      "recall": 0.8609271523178808,
+      "f1-score": 0.8813559322033898,
+      "support": 151.0
     },
-    "best_balanced_accuracy": {
-      "threshold": 0.065,
-      "accuracy": 0.6653696498054474,
-      "balanced_accuracy": 0.7714030001025517,
-      "precision": 0.14018691588785046,
-      "recall": 0.8918918918918919,
-      "f1": 0.2422907488986784,
-      "specificity": 0.6509141083132115,
-      "confusion_matrix": {
-        "tn": 1887,
-        "fp": 1012,
-        "fn": 20,
-        "tp": 165
-      }
+    "FRAUD": {
+      "precision": 0.625,
+      "recall": 0.7142857142857143,
+      "f1-score": 0.6666666666666666,
+      "support": 49.0
     },
-    "best_accuracy": {
-      "threshold": 0.915,
-      "accuracy": 0.941958495460441,
-      "balanced_accuracy": 0.5187464456522752,
-      "precision": 0.875,
-      "recall": 0.03783783783783784,
-      "f1": 0.07253886010362694,
-      "specificity": 0.9996550534667127,
-      "confusion_matrix": {
-        "tn": 2898,
-        "fp": 1,
-        "fn": 178,
-        "tp": 7
-      }
+    "accuracy": 0.825,
+    "macro avg": {
+      "precision": 0.7638888888888888,
+      "recall": 0.7876064333017976,
+      "f1-score": 0.7740112994350282,
+      "support": 200.0
     },
-    "accuracy_ge_90": {
-      "threshold": 0.56,
-      "accuracy": 0.9121271076523995,
-      "balanced_accuracy": 0.6217996886158321,
-      "precision": 0.27835051546391754,
-      "recall": 0.2918918918918919,
-      "f1": 0.2849604221635884,
-      "specificity": 0.9517074853397723,
-      "confusion_matrix": {
-        "tn": 2759,
-        "fp": 140,
-        "fn": 131,
-        "tp": 54
-      }
+    "weighted avg": {
+      "precision": 0.8347222222222223,
+      "recall": 0.825,
+      "f1-score": 0.8287570621468926,
+      "support": 200.0
     }
   },
-  "features": [
-    "Month",
-    "WeekOfMonth",
-    "DayOfWeek",
-    "Make",
-    "AccidentArea",
-    "DayOfWeekClaimed",
-    "MonthClaimed",
-    "WeekOfMonthClaimed",
-    "Sex",
-    "MaritalStatus",
-    "Age",
-    "Fault",
-    "PolicyType",
-    "VehicleCategory",
-    "VehiclePrice",
-    "RepNumber",
-    "Deductible",
-    "DriverRating",
-    "Days_Policy_Accident",
-    "Days_Policy_Claim",
-    "PastNumberOfClaims",
-    "AgeOfVehicle",
-    "AgeOfPolicyHolder",
-    "PoliceReportFiled",
-    "WitnessPresent",
-    "AgentType",
-    "NumberOfSuppliments",
-    "AddressChange_Claim",
-    "NumberOfCars",
-    "Year",
-    "BasePolicy"
-  ],
-  "ordinal_cols": [
-    "VehiclePrice",
-    "Days_Policy_Accident",
-    "Days_Policy_Claim",
-    "PastNumberOfClaims",
-    "AgeOfVehicle",
-    "AgeOfPolicyHolder",
-    "NumberOfSuppliments",
-    "AddressChange_Claim",
-    "NumberOfCars"
-  ],
-  "nominal_cols": [
-    "Month",
-    "DayOfWeek",
-    "Make",
-    "AccidentArea",
-    "DayOfWeekClaimed",
-    "MonthClaimed",
-    "Sex",
-    "MaritalStatus",
-    "Fault",
-    "PolicyType",
-    "VehicleCategory",
-    "PoliceReportFiled",
-    "WitnessPresent",
-    "AgentType",
-    "BasePolicy"
-  ],
-  "numeric_cols": [
-    "WeekOfMonth",
-    "Age",
-    "WeekOfMonthClaimed",
-    "RepNumber",
-    "Deductible",
-    "DriverRating",
-    "Year"
-  ],
-  "dropped_cols": [
-    "PolicyNumber"
-  ],
-  "positive_rate": 0.05985732814526589
+  "test_set": {
+    "rows": 200,
+    "fraud": 49,
+    "not_fraud": 151
+  },
+  "evaluation_note": "the test set was not used for preprocessing, resampling, tuning, threshold selection or model selection and was scored exactly once",
+  "reload_test": "PASSED",
+  "unseen_data_test": "PASSED",
+  "generated_utc": "2026-09-24T06:05:05.035043+00:00"
 }

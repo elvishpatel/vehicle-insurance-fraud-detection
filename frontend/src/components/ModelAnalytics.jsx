@@ -8,7 +8,7 @@ import {
   CartesianGrid,
   Tooltip
 } from 'recharts';
-import { FaChartLine, FaDatabase, FaSearchDollar, FaBullseye, FaPercentage } from 'react-icons/fa';
+import { FaChartLine, FaDatabase, FaSearchDollar, FaBullseye, FaPercentage, FaBalanceScale, FaChartBar, FaCrosshairs } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import './ModelAnalytics.css';
 
@@ -30,10 +30,14 @@ const monthlyData = [
 ];
 
 const stats = [
-  { icon: FaDatabase, value: '15,420', label: 'Real Claims Analyzed' },
-  { icon: FaSearchDollar, value: '923', label: 'Fraud Cases Identified' },
-  { icon: FaBullseye, value: '90.8%', label: 'Prediction Accuracy' },
-  { icon: FaPercentage, value: '0.85', label: 'ROC-AUC Score' },
+  { icon: FaBullseye, value: '82.50%', label: 'Accuracy' },
+  { icon: FaCrosshairs, value: '62.50%', label: 'Precision' },
+  { icon: FaSearchDollar, value: '71.43%', label: 'Recall' },
+  { icon: FaChartBar, value: '66.67%', label: 'F1 Score' },
+  { icon: FaPercentage, value: '84.17%', label: 'ROC-AUC' },
+  { icon: FaBalanceScale, value: '78.76%', label: 'Balanced Accuracy' },
+  { icon: FaChartLine, value: '61.24%', label: 'PR-AUC' },
+  { icon: FaDatabase, value: '55.10%', label: 'MCC' },
 ];
 
 // Custom Tooltip for the dashboard chart
@@ -59,13 +63,11 @@ const ModelAnalytics = () => {
     <section id="analytics" className="analytics">
       <div className="analytics__container">
         <div className="analytics__header">
-          <div className="analytics__badge">
-            <HiSparkles /> Model Intelligence
-          </div>
-          <h2 className="analytics__title">Fraud Prediction Dashboard</h2>
+         
+          <h2 className="analytics__title">Model Performance Metrics</h2>
           <p className="analytics__subtitle">
-            Every verdict is backed by patterns learned from thousands of historical
-            claims — legitimate volume and confirmed fraud, month by month.
+            Comprehensive evaluation metrics showing the ExtraTrees Sampling model's
+            ability to detect fraudulent insurance claims with high accuracy and precision.
           </p>
         </div>
 
